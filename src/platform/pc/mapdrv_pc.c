@@ -9,6 +9,51 @@ static u32 read_be32(const unsigned char* p) {
     return ((u32)p[0] << 24) | ((u32)p[1] << 16) | ((u32)p[2] << 8) | (u32)p[3];
 }
 
+
+static void dump_map_chunks(const void* data, u32 size) {
+    const unsigned char* p;
+    u32 dataSize;
+    u32 relCount;
+    u32 chunkCount;
+    u32 chunkOffset;
+    u32 stringOffset;
+    u32 i;
+
+    if (!data || size < 0x20) {
+        return;
+    }
+
+    p = (const unsigned char*)data;
+    dataSize = read_be32(p + 4);
+    relCount = read_be32(p + 8);
+    chunkCount = read_be32(p + 12);
+
+    chunkOffset = 0x20 + dataSize + (relCount * 4);
+    stringOffset = chunkOffset + (chunkCount * 8);
+
+    printf("map layout dataOff=32 relOff=%u chunkOff=%u stringOff=%u\n",
+           0x20 + dataSize,
+           chunkOffset,
+           stringOffset);
+
+    if (chunkOffset + chunkCount * 8 > size) {
+        printf("chunk table outside file\n");
+        return;
+    }
+
+    for (i = 0; i < chunkCount && i < 8; i++) {
+        u32 off = read_be32(p + chunkOffset + i * 8);
+        u32 str = read_be32(p + chunkOffset + i * 8 + 4);
+        const char* name = "";
+
+        if (stringOffset + str < size) {
+            name = (const char*)(p + stringOffset + str);
+        }
+
+        printf("chunk[%u] offset=%u string=%u name=%s\n", i, off, str, name);
+    }
+}
+
 static void dump_map_header(const void* data, u32 size) {
     const unsigned char* p;
 
@@ -90,6 +135,7 @@ int mapLoadPC(const char* map) {
     if (s_map_d) {
         dump_bytes("map d", s_map_d, s_map_d_size);
         dump_map_header(s_map_d, s_map_d_size);
+        dump_map_chunks(s_map_d, s_map_d_size);
     }
 
     return s_map_d != 0 && s_map_t != 0 && s_map_s != 0 && s_map_c != 0;
