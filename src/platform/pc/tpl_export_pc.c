@@ -14,40 +14,63 @@ static u16 be16(const unsigned char* p) {
 
 static void write_ppm_gray_i4(const char* out_path, const unsigned char* src, u32 width, u32 height) {
     FILE* f;
-    u32 x;
+    unsigned char* out;
+    u32 tile_x;
+    u32 tile_y;
     u32 y;
+    u32 x;
+    const unsigned char* cursor;
+
+    out = (unsigned char*)calloc(width * height * 3, 1);
+    if (!out) {
+        return;
+    }
+
+    cursor = src;
+
+    for (tile_y = 0; tile_y < height; tile_y += 8) {
+        for (tile_x = 0; tile_x < width; tile_x += 8) {
+            for (y = 0; y < 8; y++) {
+                for (x = 0; x < 8; x += 2) {
+                    unsigned char b = *cursor++;
+                    unsigned char hi = b >> 4;
+                    unsigned char lo = b & 0x0F;
+                    u32 px0 = tile_x + x;
+                    u32 px1 = tile_x + x + 1;
+                    u32 py = tile_y + y;
+
+                    if (px0 < width && py < height) {
+                        unsigned char v = hi * 17;
+                        unsigned char* dst = out + ((py * width + px0) * 3);
+                        dst[0] = v;
+                        dst[1] = v;
+                        dst[2] = v;
+                    }
+
+                    if (px1 < width && py < height) {
+                        unsigned char v = lo * 17;
+                        unsigned char* dst = out + ((py * width + px1) * 3);
+                        dst[0] = v;
+                        dst[1] = v;
+                        dst[2] = v;
+                    }
+                }
+            }
+        }
+    }
 
     f = fopen(out_path, "wb");
     if (!f) {
+        free(out);
         printf("failed to write %s\n", out_path);
         return;
     }
 
     fprintf(f, "P6\n%u %u\n255\n", width, height);
-
-    for (y = 0; y < height; y++) {
-        for (x = 0; x < width; x++) {
-            u32 pixel_index = y * width + x;
-            unsigned char b = src[pixel_index / 2];
-            unsigned char nibble;
-            unsigned char v;
-            unsigned char rgb[3];
-
-            if ((pixel_index & 1) == 0) {
-                nibble = b >> 4;
-            } else {
-                nibble = b & 0x0F;
-            }
-
-            v = (unsigned char)(nibble * 17);
-            rgb[0] = v;
-            rgb[1] = v;
-            rgb[2] = v;
-            fwrite(rgb, 1, 3, f);
-        }
-    }
-
+    fwrite(out, 1, width * height * 3, f);
     fclose(f);
+    free(out);
+
     printf("wrote %s\n", out_path);
 }
 
