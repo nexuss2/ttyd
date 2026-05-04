@@ -72,6 +72,41 @@ static const char* map_string_at(const void* data, u32 size, u32 target) {
 }
 
 
+
+static void dump_texture_table(const void* data, u32 size) {
+    const unsigned char* base;
+    const unsigned char* table;
+    u32 off;
+    u32 i;
+
+    if (!find_map_chunk(data, size, "texture_table", &off)) {
+        printf("texture_table missing\n");
+        return;
+    }
+
+    if (0x20 + off >= size) {
+        printf("texture_table outside file\n");
+        return;
+    }
+
+    base = (const unsigned char*)data + 0x20;
+    table = base + off;
+
+    printf("texture_table offset=%u preview:\n", off);
+
+    for (i = 0; i < 16; i++) {
+        u32 target = read_be32(table + i * 4);
+
+        if (target == 0) {
+            printf("  texture[%u] null\n", i);
+        } else if (0x20 + target < size) {
+            printf("  texture[%u] target=%u str=%s\n", i, target, (const char*)(base + target));
+        } else {
+            printf("  texture[%u] outside target=%u\n", i, target);
+        }
+    }
+}
+
 static void dump_material_name_table(const void* data, u32 size) {
     const unsigned char* base;
     const unsigned char* table;
@@ -333,6 +368,7 @@ int mapLoadPC(const char* map) {
      //  /* dump_information_offsets(s_map_d, s_map_d_size); */
       print_map_information_summary(s_map_d, s_map_d_size);
         dump_material_name_table(s_map_d, s_map_d_size);
+        dump_texture_table(s_map_d, s_map_d_size);
     }
 
     return s_map_d != 0 && s_map_t != 0 && s_map_s != 0 && s_map_c != 0;
