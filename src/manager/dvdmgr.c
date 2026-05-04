@@ -12,6 +12,13 @@
 #include <dolphin/os.h>
 #include <string.h>
 
+#ifdef PLATFORM_PC
+BOOL PlatformFileExists(const char* path);
+BOOL PlatformFileOpen(const char* path, DVDFileInfo* info);
+s32 PlatformFileRead(DVDFileInfo* info, void* address, u32 size, s32 offset);
+void PlatformFileClose(DVDFileInfo* info);
+#endif
+
 //.bss
 OSThread dvdmgr_thread;
 static u8 stack[0x4000];
@@ -35,11 +42,15 @@ void* proc_main(void* param) { //1:1
 void DVDMgrInit(void) { //1:1
     dvdq = __memAlloc(HEAP_DEFAULT, sizeof(DVDEntry) * DVDEntryCount);
     memset(dvdq, 0, sizeof(DVDEntry) * DVDEntryCount);
+#ifndef PLATFORM_PC
     if (!OSCreateThread(&dvdmgr_thread, proc_main, NULL, stack + sizeof(stack), sizeof(stack), 16, OS_THREAD_ATTR_DETACH)) {
         while (1) ;
     }
     dvdmgr_thread_on = TRUE;
     OSResumeThread(&dvdmgr_thread);
+#else
+    dvdmgr_thread_on = FALSE;
+#endif
 }
 
 void DVDMgrDelete(void) { //1:1
@@ -96,7 +107,11 @@ void DVDMgrMain(void) { //1:1
                 }
             }
             
+#ifdef PLATFORM_PC
+            result = PlatformFileRead(&entry->info, entry->address, size, entry->offset + entry->position);
+#else
             result = DVDRead(&entry->info, entry->address, size, entry->offset + entry->position);
+#endif
             if (result == DVD_RESULT_CANCELED) {
                 entry->status &= ~DVDMGR_READING;
                 entry->status |= DVDMGR_FINISHED;
@@ -122,7 +137,11 @@ void DVDMgrMain(void) { //1:1
         }
         
         if (entry->status & DVDMGR_CLOSED) {
+#ifdef PLATFORM_PC
+            PlatformFileClose(&entry->info);
+#else
             DVDClose(&entry->info);
+#endif
             memset(entry, 0, sizeof(DVDEntry));
         }
         
@@ -139,9 +158,15 @@ DVDEntry* DVDMgrOpen(const char* path, u8 priority, u16 unknown) { //1:1
     DVDEntry* entry;
     int i;
 
+#ifdef PLATFORM_PC
+    if (!PlatformFileExists(path)) {
+        return NULL;
+    }
+#else
     if (DVDConvertPathToEntrynum(path) == -1) {
         return NULL;
     }
+#endif
     
     for (entry = dvdq, i = 0; i < DVDEntryCount; i++, entry++) {
         if (!(entry->status & DVDMGR_INUSE)) {
@@ -161,10 +186,17 @@ DVDEntry* DVDMgrOpen(const char* path, u8 priority, u16 unknown) { //1:1
     entry->offset = 0;
     entry->position = 0;
     entry->status |= DVDMGR_INUSE;
+#ifdef PLATFORM_PC
+    if (!PlatformFileOpen(entry->name, &entry->info)) {
+        memset(entry, 0, sizeof(DVDEntry));
+        return NULL;
+    }
+#else
     if (!DVDOpen(entry->name, &entry->info)) {
         memset(entry, 0, sizeof(DVDEntry));
         return NULL;
     }
+#endif
     return entry;
 }
 
