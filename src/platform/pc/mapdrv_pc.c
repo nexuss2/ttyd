@@ -1,37 +1,55 @@
 #include <stdio.h>
-#include <stdlib.h>
 
 typedef unsigned int u32;
 
 void* arcOpen(const char* filename, void** addr, u32* length);
 
-static void* s_map_dat;
-static void* s_map_tpl;
-static u32 s_map_dat_size;
-static u32 s_map_tpl_size;
+static void* s_map_d;
+static void* s_map_t;
+static void* s_map_s;
+static void* s_map_c;
+
+static u32 s_map_d_size;
+static u32 s_map_t_size;
+static u32 s_map_s_size;
+static u32 s_map_c_size;
+
+static void* load_map_file(const char* map, const char* suffix, u32* size) {
+    char path[128];
+    void* data;
+
+    sprintf(path, "./m/%s/%s", map, suffix);
+    data = arcOpen(path, 0, size);
+
+    printf("map file %s size=%u loaded=%d\n", path, *size, data != 0);
+
+    return data;
+}
 
 void mapInit(void) {
-    s_map_dat = 0;
-    s_map_tpl = 0;
-    s_map_dat_size = 0;
-    s_map_tpl_size = 0;
+    s_map_d = 0;
+    s_map_t = 0;
+    s_map_s = 0;
+    s_map_c = 0;
+
+    s_map_d_size = 0;
+    s_map_t_size = 0;
+    s_map_s_size = 0;
+    s_map_c_size = 0;
 }
 
 int mapLoadPC(const char* map) {
-    char path[128];
+    s_map_d = load_map_file(map, "d", &s_map_d_size);
+    s_map_t = load_map_file(map, "t", &s_map_t_size);
+    s_map_s = load_map_file(map, "s", &s_map_s_size);
+    s_map_c = load_map_file(map, "c", &s_map_c_size);
 
-    sprintf(path, "./m/%s/d", map);
-    s_map_dat = arcOpen(path, 0, &s_map_dat_size);
-
-    sprintf(path, "./m/%s/t", map);
-    s_map_tpl = arcOpen(path, 0, &s_map_tpl_size);
-
-    printf("mapLoadPC %s dat=%p size=%u tpl=%p size=%u\n",
+    printf("mapLoadPC %s d=%u t=%u s=%u c=%u\n",
            map,
-           s_map_dat,
-           s_map_dat_size,
-           s_map_tpl,
-           s_map_tpl_size);
+           s_map_d_size,
+           s_map_t_size,
+           s_map_s_size,
+           s_map_c_size);
 
-    return s_map_dat != 0;
+    return s_map_d != 0 && s_map_t != 0 && s_map_s != 0 && s_map_c != 0;
 }
