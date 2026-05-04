@@ -254,3 +254,83 @@ int TPLExportFirstCMPR(const char* out_path, const void* data, u32 size) {
     printf("no CMPR texture found\n");
     return 0;
 }
+
+int TPLExportAllCMPR(const char* out_dir, const char* prefix, const void* data, u32 size) {
+    const unsigned char* p = (const unsigned char*)data;
+    u32 version;
+    u32 count;
+    u32 descriptorOffset;
+    u32 i;
+    int exported = 0;
+
+    if (!data || size < 12) {
+        return 0;
+    }
+
+    version = be32(p + 0);
+    count = be32(p + 4);
+    descriptorOffset = be32(p + 8);
+
+    if (version != 0x0020AF30) {
+        return 0;
+    }
+
+    for (i = 0; i < count; i++) {
+        u32 desc = descriptorOffset + i * 8;
+        u32 texHeaderOffset;
+        const unsigned char* th;
+        u32 format;
+        u32 dataOffset;
+        u16 height;
+        u16 width;
+        unsigned char* out;
+        const unsigned char* src;
+        u32 bx;
+        u32 by;
+        char out_path[256];
+
+        if (desc + 8 > size) {
+            break;
+        }
+
+        texHeaderOffset = be32(p + desc);
+        if (!texHeaderOffset || texHeaderOffset + 0x24 > size) {
+            continue;
+        }
+
+        th = p + texHeaderOffset;
+        height = be16(th + 0);
+        width = be16(th + 2);
+        format = be32(th + 4);
+        dataOffset = be32(th + 8);
+
+        if (format != 14 || dataOffset >= size) {
+            continue;
+        }
+
+        out = (unsigned char*)calloc(width * height * 3, 1);
+        if (!out) {
+            continue;
+        }
+
+        src = p + dataOffset;
+
+        for (by = 0; by < height; by += 8) {
+            for (bx = 0; bx < width; bx += 8) {
+                decode_cmpr_block(src + 0, out, width, height, bx + 0, by + 0);
+                decode_cmpr_block(src + 8, out, width, height, bx + 4, by + 0);
+                decode_cmpr_block(src + 16, out, width, height, bx + 0, by + 4);
+                decode_cmpr_block(src + 24, out, width, height, bx + 4, by + 4);
+                src += 32;
+            }
+        }
+
+        sprintf(out_path, "%s/%s_%03u.ppm", out_dir, prefix, i);
+        write_ppm_rgb(out_path, out, width, height);
+        free(out);
+        exported++;
+    }
+
+    printf("exported %d CMPR textures from %s\n", exported, prefix);
+    return exported;
+}
