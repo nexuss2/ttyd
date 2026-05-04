@@ -13,6 +13,10 @@ void envInit(void);
 void envTexSetup(void);
 int envIsLoaded(void);
 
+void windowInit(void);
+void windowTexSetup(void);
+int windowIsLoaded(void);
+
 int main(void) {
     printf("TTYD PC runner starting\n");
 
@@ -28,6 +32,10 @@ int main(void) {
     envInit();
     envTexSetup();
     printf("env loaded: %d\n", envIsLoaded());
+
+    windowInit();
+    windowTexSetup();
+    printf("window loaded: %d\n", windowIsLoaded());
 
     return 0;
 }
