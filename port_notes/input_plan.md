@@ -30,3 +30,8 @@ First abstraction:
 PlatformInput_Update()
 PlatformInput_GetPadStatus(chan)
 PlatformInput_SetRumble(chan, state)
+
+Next build step:
+- Do not add src/platform/pc/input.c to the normal GameCube decomp build yet.
+- It should only compile when PLATFORM_PC is enabled.
+- Future PC build needs a separate config/target, not the matching G8MJ01 build.
