@@ -21,6 +21,9 @@ void effInit(void);
 void effTexSetup(void);
 int effIsLoaded(void);
 
+void mapInit(void);
+int mapLoadPC(const char* map);
+
 int main(void) {
     printf("TTYD PC runner starting\n");
 
@@ -44,6 +47,9 @@ int main(void) {
     effInit();
     effTexSetup();
     printf("effect loaded: %d\n", effIsLoaded());
+
+    mapInit();
+    printf("map loaded: %d\n", mapLoadPC("aaa_00"));
 
     return 0;
 }
