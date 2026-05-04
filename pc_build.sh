@@ -30,7 +30,9 @@ cc -DPLATFORM_PC \
 
 cc -DPLATFORM_PC pc_asset_test.c build/pc/file.o -o build/pc/asset_test
 cc -DPLATFORM_PC pc_arcdrv_test.c build/pc/file.o build/pc/arcdrv_pc.o -o build/pc/arcdrv_test
+cc -DPLATFORM_PC pc_map_test.c build/pc/file.o -o build/pc/map_test
 
 ./build/pc/ttyd_pc
 ./build/pc/asset_test
 ./build/pc/arcdrv_test
+./build/pc/map_test
