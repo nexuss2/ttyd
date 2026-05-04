@@ -94,7 +94,7 @@ static void dump_texture_table(const void* data, u32 size) {
 
     printf("texture_table offset=%u preview:\n", off);
 
-    for (i = 0; i < 16; i++) {
+    for (i = 0; i < 64; i++) {
         u32 target = read_be32(table + i * 4);
 
         if (target == 0) {
