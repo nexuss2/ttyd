@@ -290,12 +290,12 @@ int mapLoadPC(const char* map) {
            s_map_c_size);
 
     if (s_map_d) {
-     //   dump_bytes("map d", s_map_d, s_map_d_size);
-     //   dump_map_header(s_map_d, s_map_d_size);
-     //   dump_map_chunks(s_map_d, s_map_d_size);
-    //   dump_named_chunks(s_map_d, s_map_d_size);
-      //  dump_information_chunk(s_map_d, s_map_d_size);
-     //  dump_information_offsets(s_map_d, s_map_d_size);
+     //   /* dump_bytes("map d", s_map_d, s_map_d_size); */
+     //   /* dump_map_header(s_map_d, s_map_d_size); */
+     //   /* dump_map_chunks(s_map_d, s_map_d_size); */
+    //   /* dump_named_chunks(s_map_d, s_map_d_size); */
+      //  /* dump_information_chunk(s_map_d, s_map_d_size); */
+     //  /* dump_information_offsets(s_map_d, s_map_d_size); */
       print_map_information_summary(s_map_d, s_map_d_size);
     }
 
