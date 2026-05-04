@@ -59,6 +59,40 @@ static int find_map_chunk(const void* data, u32 size, const char* wanted, u32* o
 
 
 
+
+static const char* map_string_at(const void* data, u32 size, u32 target) {
+    const unsigned char* base;
+
+    if (!data || 0x20 + target >= size) {
+        return "<outside>";
+    }
+
+    base = (const unsigned char*)data + 0x20;
+    return (const char*)(base + target);
+}
+
+static void print_map_information_summary(const void* data, u32 size) {
+    const unsigned char* base;
+    const unsigned char* info;
+    u32 off;
+
+    if (!find_map_chunk(data, size, "information", &off)) {
+        printf("map information summary unavailable\n");
+        return;
+    }
+
+    base = (const unsigned char*)data + 0x20;
+    info = base + off;
+
+    printf("map information summary:\n");
+    printf("  version: %s\n", map_string_at(data, size, read_be32(info + 0)));
+    printf("  scene: %s\n", map_string_at(data, size, read_be32(info + 8)));
+    printf("  area: %s\n", map_string_at(data, size, read_be32(info + 12)));
+    printf("  build: %s\n", map_string_at(data, size, read_be32(info + 16)));
+    printf("  object_a: %s\n", map_string_at(data, size, read_be32(info + 20)));
+    printf("  object_b: %s\n", map_string_at(data, size, read_be32(info + 36)));
+}
+
 static void dump_information_offsets(const void* data, u32 size) {
     const unsigned char* base;
     const unsigned char* info;
@@ -262,6 +296,7 @@ int mapLoadPC(const char* map) {
         dump_named_chunks(s_map_d, s_map_d_size);
         dump_information_chunk(s_map_d, s_map_d_size);
         dump_information_offsets(s_map_d, s_map_d_size);
+        print_map_information_summary(s_map_d, s_map_d_size);
     }
 
     return s_map_d != 0 && s_map_t != 0 && s_map_s != 0 && s_map_c != 0;
