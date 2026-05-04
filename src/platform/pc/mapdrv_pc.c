@@ -58,6 +58,32 @@ static int find_map_chunk(const void* data, u32 size, const char* wanted, u32* o
 }
 
 
+
+static void dump_information_offsets(const void* data, u32 size) {
+    const unsigned char* base;
+    const unsigned char* info;
+    u32 off;
+    u32 i;
+
+    if (!find_map_chunk(data, size, "information", &off)) {
+        return;
+    }
+
+    base = (const unsigned char*)data + 0x20;
+    info = base + off;
+
+    printf("information offset targets:\n");
+    for (i = 0; i < 12; i++) {
+        u32 target = read_be32(info + i * 4);
+        if (0x20 + target < size) {
+            const char* maybe = (const char*)(base + target);
+            printf("  [%u] target=%u str=%s\n", i, target, maybe);
+        } else {
+            printf("  [%u] target=%u outside\n", i, target);
+        }
+    }
+}
+
 static void dump_information_chunk(const void* data, u32 size) {
     const unsigned char* p;
     u32 off;
@@ -235,6 +261,7 @@ int mapLoadPC(const char* map) {
         dump_map_chunks(s_map_d, s_map_d_size);
         dump_named_chunks(s_map_d, s_map_d_size);
         dump_information_chunk(s_map_d, s_map_d_size);
+        dump_information_offsets(s_map_d, s_map_d_size);
     }
 
     return s_map_d != 0 && s_map_t != 0 && s_map_s != 0 && s_map_c != 0;
