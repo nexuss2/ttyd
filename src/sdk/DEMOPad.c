@@ -4,6 +4,12 @@
 
 #include <sdk/__demo.h>
 
+#ifdef PLATFORM_PC
+void PlatformInputRead(PADStatus* pads);
+void PlatformInputInit(void);
+void PlatformInputReset(u32 resetMask);
+#endif
+
 static u32 PadChanMask[4] = {
     PAD_CHAN0_BIT,
     PAD_CHAN1_BIT,
@@ -71,8 +77,12 @@ void DEMOPadRead(void) {
     s32 i;
     u32 ResetReq = 0;
 
+#ifdef PLATFORM_PC
+    PlatformInputRead(&Pad[0]);
+#else
     PADRead(&Pad[0]);
     PADClamp(&Pad[0]);
+#endif
 
     DemoNumValidPads = 0;
 
@@ -87,14 +97,22 @@ void DEMOPadRead(void) {
     }
 
     if (ResetReq != 0) {
+#ifdef PLATFORM_PC
+        PlatformInputReset(ResetReq);
+#else
         PADReset(ResetReq);
+#endif
     }
 }
 
 void DEMOPadInit(void) {
     s32 i;
 
+#ifdef PLATFORM_PC
+    PlatformInputInit();
+#else
     PADInit();
+#endif
 
     for (i = 0; i < 4; i++) {
         DemoPad[i].pst.button = 0;
