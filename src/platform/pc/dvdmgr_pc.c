@@ -44,12 +44,6 @@ void DVDMgrInit(void) {
     memset(dvdq, 0, sizeof(dvdq));
 }
 
-void DVDMgrDelete(void) {
-}
-
-void DVDMgrMain(void) {
-}
-
 DVDEntry* DVDMgrOpen(const char* path, u8 priority, u16 unknown) {
     DVDEntry* entry;
     int i;
@@ -60,14 +54,10 @@ DVDEntry* DVDMgrOpen(const char* path, u8 priority, u16 unknown) {
 
     for (i = 0; i < DVDEntryCount; i++) {
         entry = &dvdq[i];
-        if (!(entry->status & DVDMGR_INUSE)) {
-            break;
-        }
+        if (!(entry->status & DVDMGR_INUSE)) break;
     }
 
-    if (i >= DVDEntryCount) {
-        return NULL;
-    }
+    if (i >= DVDEntryCount) return NULL;
 
     memset(entry, 0, sizeof(DVDEntry));
     strcpy(entry->name, path);
@@ -84,33 +74,16 @@ DVDEntry* DVDMgrOpen(const char* path, u8 priority, u16 unknown) {
 }
 
 s32 DVDMgrRead(DVDEntry* entry, void* address, u32 size, s32 offset) {
-    s32 result;
-
-    result = PlatformFileRead(entry->name, &entry->info, address, size, offset);
+    s32 result = PlatformFileRead(entry->name, &entry->info, address, size, offset);
     entry->status |= DVDMGR_FINISHED;
-
     return result;
-}
-
-void DVDMgrReadAsync(DVDEntry* entry, void* address, u32 size, s32 offset, DVDCallback callback) {
-    s32 result;
-
-    result = DVDMgrRead(entry, address, size, offset);
-
-    if (callback) {
-        callback(result, &entry->info);
-    }
-}
-
-void DVDMgrClose(DVDEntry* entry) {
-    PlatformFileClose(&entry->info);
-    memset(entry, 0, sizeof(DVDEntry));
 }
 
 u32 DVDMgrGetLength(DVDEntry* entry) {
     return entry->info.length;
 }
 
-void DVDMgrSetupCallback(void* callback) {
-    (void)callback;
+void DVDMgrClose(DVDEntry* entry) {
+    PlatformFileClose(&entry->info);
+    memset(entry, 0, sizeof(DVDEntry));
 }
