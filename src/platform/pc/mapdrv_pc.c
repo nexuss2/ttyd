@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 
 typedef unsigned int u32;
 
@@ -9,6 +10,75 @@ static u32 read_be32(const unsigned char* p) {
     return ((u32)p[0] << 24) | ((u32)p[1] << 16) | ((u32)p[2] << 8) | (u32)p[3];
 }
 
+
+
+static int find_map_chunk(const void* data, u32 size, const char* wanted, u32* outOffset) {
+    const unsigned char* p;
+    u32 dataSize;
+    u32 relCount;
+    u32 chunkCount;
+    u32 chunkOffset;
+    u32 stringOffset;
+    u32 i;
+
+    if (!data || size < 0x20) {
+        return 0;
+    }
+
+    p = (const unsigned char*)data;
+    dataSize = read_be32(p + 4);
+    relCount = read_be32(p + 8);
+    chunkCount = read_be32(p + 12);
+
+    chunkOffset = 0x20 + dataSize + (relCount * 4);
+    stringOffset = chunkOffset + (chunkCount * 8);
+
+    if (chunkOffset + chunkCount * 8 > size) {
+        return 0;
+    }
+
+    for (i = 0; i < chunkCount; i++) {
+        u32 off = read_be32(p + chunkOffset + i * 8);
+        u32 str = read_be32(p + chunkOffset + i * 8 + 4);
+        const char* name;
+
+        if (stringOffset + str >= size) {
+            continue;
+        }
+
+        name = (const char*)(p + stringOffset + str);
+
+        if (strcmp(name, wanted) == 0) {
+            *outOffset = off;
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+static void dump_named_chunks(const void* data, u32 size) {
+    const char* names[] = {
+        "information",
+        "texture_table",
+        "material_name_table",
+        "vcd_table",
+        "animation_table",
+        "curve_table",
+        "fog_table",
+        "light_table"
+    };
+    u32 i;
+    u32 off;
+
+    for (i = 0; i < sizeof(names) / sizeof(names[0]); i++) {
+        if (find_map_chunk(data, size, names[i], &off)) {
+            printf("named chunk %s offset=%u\n", names[i], off);
+        } else {
+            printf("named chunk %s missing\n", names[i]);
+        }
+    }
+}
 
 static void dump_map_chunks(const void* data, u32 size) {
     const unsigned char* p;
@@ -136,6 +206,7 @@ int mapLoadPC(const char* map) {
         dump_bytes("map d", s_map_d, s_map_d_size);
         dump_map_header(s_map_d, s_map_d_size);
         dump_map_chunks(s_map_d, s_map_d_size);
+        dump_named_chunks(s_map_d, s_map_d_size);
     }
 
     return s_map_d != 0 && s_map_t != 0 && s_map_s != 0 && s_map_c != 0;
