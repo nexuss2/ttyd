@@ -1,4 +1,20 @@
-#include <dolphin/pad.h>
+typedef unsigned short u16;
+typedef signed char s8;
+
+typedef struct PADStatus {
+    u16 button;
+    s8 stickX;
+    s8 stickY;
+    s8 substickX;
+    s8 substickY;
+    unsigned char triggerLeft;
+    unsigned char triggerRight;
+    unsigned char analogA;
+    unsigned char analogB;
+    signed char err;
+} PADStatus;
+
+#define PAD_BUTTON_A 0x0100
 
 static u16 s_buttons;
 static s8 s_stick_x;
@@ -36,4 +52,5 @@ void PlatformInputRead(PADStatus* pads) {
 }
 
 void PlatformInputReset(unsigned int resetMask) {
+    (void)resetMask;
 }

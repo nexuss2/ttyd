@@ -1,5 +1,7 @@
-#include <dolphin/os.h>
+#include <time.h>
+
+typedef unsigned int OSTick;
 
 OSTick PlatformGetTick(void) {
-    return 0;
+    return (OSTick)clock();
 }

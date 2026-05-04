@@ -1,8 +1,17 @@
-#include <dolphin/dvd.h>
-#include <dolphin/types.h>
 #include <stdio.h>
-#include <string.h>
 
+typedef int BOOL;
+typedef int s32;
+typedef unsigned int u32;
+
+typedef struct DVDFileInfo {
+    unsigned char unused[0x34];
+    u32 length;
+    void* callback;
+} DVDFileInfo;
+
+#define TRUE 1
+#define FALSE 0
 #define PC_GAME_FILES_ROOT "orig/G8MJ01/files"
 
 static void make_pc_path(char* out, const char* path) {
@@ -39,8 +48,7 @@ BOOL PlatformFileOpen(const char* path, DVDFileInfo* info) {
 
     fseek(f, 0, SEEK_END);
     info->length = (u32)ftell(f);
-    info->startAddr = 0;
-    info->callback = NULL;
+    info->callback = 0;
     fclose(f);
 
     return TRUE;
@@ -49,6 +57,7 @@ BOOL PlatformFileOpen(const char* path, DVDFileInfo* info) {
 s32 PlatformFileRead(const char* path, DVDFileInfo* info, void* address, u32 size, s32 offset) {
     FILE* f;
     char pc_path[512];
+    (void)info;
 
     make_pc_path(pc_path, path);
 
@@ -65,4 +74,5 @@ s32 PlatformFileRead(const char* path, DVDFileInfo* info, void* address, u32 siz
 }
 
 void PlatformFileClose(DVDFileInfo* info) {
+    (void)info;
 }
