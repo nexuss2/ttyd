@@ -4,6 +4,42 @@ typedef unsigned int u32;
 
 void* arcOpen(const char* filename, void** addr, u32* length);
 
+
+static u32 read_be32(const unsigned char* p) {
+    return ((u32)p[0] << 24) | ((u32)p[1] << 16) | ((u32)p[2] << 8) | (u32)p[3];
+}
+
+static void dump_map_header(const void* data, u32 size) {
+    const unsigned char* p;
+
+    if (!data || size < 16) {
+        printf("map header unavailable\n");
+        return;
+    }
+
+    p = (const unsigned char*)data;
+
+    printf("map header fileSize=%u dataSize=%u relCount=%u unk0c=%u\n",
+           read_be32(p + 0),
+           read_be32(p + 4),
+           read_be32(p + 8),
+           read_be32(p + 12));
+}
+
+static void dump_bytes(const char* label, const void* data, u32 size) {
+    const unsigned char* p;
+    u32 i;
+
+    p = (const unsigned char*)data;
+
+    printf("%s first bytes:", label);
+    for (i = 0; i < size && i < 32; i++) {
+        printf(" %02x", p[i]);
+    }
+    printf("\n");
+}
+
+
 static void* s_map_d;
 static void* s_map_t;
 static void* s_map_s;
@@ -50,6 +86,11 @@ int mapLoadPC(const char* map) {
            s_map_t_size,
            s_map_s_size,
            s_map_c_size);
+
+    if (s_map_d) {
+        dump_bytes("map d", s_map_d, s_map_d_size);
+        dump_map_header(s_map_d, s_map_d_size);
+    }
 
     return s_map_d != 0 && s_map_t != 0 && s_map_s != 0 && s_map_c != 0;
 }
