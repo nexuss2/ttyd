@@ -47,7 +47,21 @@ BOOL PlatformFileOpen(const char* path, DVDFileInfo* info) {
 }
 
 s32 PlatformFileRead(const char* path, DVDFileInfo* info, void* address, u32 size, s32 offset) {
-    return -1;
+    FILE* f;
+    char pc_path[512];
+
+    make_pc_path(pc_path, path);
+
+    f = fopen(pc_path, "rb");
+    if (!f) {
+        return -1;
+    }
+
+    fseek(f, offset, SEEK_SET);
+    fread(address, 1, size, f);
+    fclose(f);
+
+    return size;
 }
 
 void PlatformFileClose(DVDFileInfo* info) {
