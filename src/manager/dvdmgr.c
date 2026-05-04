@@ -42,14 +42,15 @@ void* proc_main(void* param) { //1:1
 void DVDMgrInit(void) { //1:1
     dvdq = __memAlloc(HEAP_DEFAULT, sizeof(DVDEntry) * DVDEntryCount);
     memset(dvdq, 0, sizeof(DVDEntry) * DVDEntryCount);
-#ifndef PLATFORM_PC
+
+#ifdef PLATFORM_PC
+    dvdmgr_thread_on = FALSE;
+#else
     if (!OSCreateThread(&dvdmgr_thread, proc_main, NULL, stack + sizeof(stack), sizeof(stack), 16, OS_THREAD_ATTR_DETACH)) {
-        while (1) ;
+        while (1);
     }
     dvdmgr_thread_on = TRUE;
     OSResumeThread(&dvdmgr_thread);
-#else
-    dvdmgr_thread_on = FALSE;
 #endif
 }
 
@@ -200,6 +201,18 @@ DVDEntry* DVDMgrOpen(const char* path, u8 priority, u16 unknown) { //1:1
     return entry;
 }
 
+#ifdef PLATFORM_PC
+s32 DVDMgrRead(DVDEntry* entry, void* address, u32 size, s32 offset) {
+    s32 result;
+
+    result = PlatformFileRead(entry->name, &entry->info, address, size, offset);
+
+    entry->status |= DVDMGR_FINISHED;
+
+    return result;
+}
+#else
+
 //return is s32 even though it cannot be negative
 s32 DVDMgrRead(DVDEntry* entry, void* address, u32 size, s32 offset) {
 	entry->address = address;
@@ -214,6 +227,7 @@ s32 DVDMgrRead(DVDEntry* entry, void* address, u32 size, s32 offset) {
 	}
 	return entry->info.length;
 }
+#endif
 
 void DVDMgrReadAsync(DVDEntry* entry, void* address, u32 size, s32 offset, DVDCallback callback) {
 	entry->address = address;
