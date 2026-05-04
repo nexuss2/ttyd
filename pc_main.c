@@ -17,6 +17,10 @@ void windowInit(void);
 void windowTexSetup(void);
 int windowIsLoaded(void);
 
+void effInit(void);
+void effTexSetup(void);
+int effIsLoaded(void);
+
 int main(void) {
     printf("TTYD PC runner starting\n");
 
@@ -36,6 +40,10 @@ int main(void) {
     windowInit();
     windowTexSetup();
     printf("window loaded: %d\n", windowIsLoaded());
+
+    effInit();
+    effTexSetup();
+    printf("effect loaded: %d\n", effIsLoaded());
 
     return 0;
 }

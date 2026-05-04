@@ -12,6 +12,7 @@ cc -DPLATFORM_PC -c src/platform/pc/arcdrv_pc.c -o build/pc/arcdrv_pc.o
 cc -DPLATFORM_PC -c src/platform/pc/fadedrv_pc.c -o build/pc/fadedrv_pc.o
 cc -DPLATFORM_PC -c src/platform/pc/envdrv_pc.c -o build/pc/envdrv_pc.o
 cc -DPLATFORM_PC -c src/platform/pc/windowdrv_pc.c -o build/pc/windowdrv_pc.o
+cc -DPLATFORM_PC -c src/platform/pc/effdrv_pc.c -o build/pc/effdrv_pc.o
 
 cc -DPLATFORM_PC \
   pc_main.c \
@@ -24,6 +25,7 @@ cc -DPLATFORM_PC \
   build/pc/fadedrv_pc.o \
   build/pc/envdrv_pc.o \
   build/pc/windowdrv_pc.o \
+  build/pc/effdrv_pc.o \
   -o build/pc/ttyd_pc
 
 cc -DPLATFORM_PC pc_asset_test.c build/pc/file.o -o build/pc/asset_test
