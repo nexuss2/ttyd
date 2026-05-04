@@ -57,6 +57,33 @@ static int find_map_chunk(const void* data, u32 size, const char* wanted, u32* o
     return 0;
 }
 
+
+static void dump_information_chunk(const void* data, u32 size) {
+    const unsigned char* p;
+    u32 off;
+    u32 i;
+
+    if (!find_map_chunk(data, size, "information", &off)) {
+        printf("information chunk missing\n");
+        return;
+    }
+
+    if (off >= size) {
+        printf("information chunk offset outside file\n");
+        return;
+    }
+
+    p = (const unsigned char*)data + 0x20 + off;
+
+    printf("information chunk dataOffset=%u fileOffset=%u first bytes:", off, 0x20 + off);
+    for (i = 0; i < 64 && 0x20 + off + i < size; i++) {
+        printf(" %02x", p[i]);
+    }
+    printf("\n");
+
+    printf("information strings guess: %s\n", (const char*)p);
+}
+
 static void dump_named_chunks(const void* data, u32 size) {
     const char* names[] = {
         "information",
@@ -207,6 +234,7 @@ int mapLoadPC(const char* map) {
         dump_map_header(s_map_d, s_map_d_size);
         dump_map_chunks(s_map_d, s_map_d_size);
         dump_named_chunks(s_map_d, s_map_d_size);
+        dump_information_chunk(s_map_d, s_map_d_size);
     }
 
     return s_map_d != 0 && s_map_t != 0 && s_map_s != 0 && s_map_c != 0;
