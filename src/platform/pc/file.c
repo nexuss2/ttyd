@@ -15,6 +15,10 @@ typedef struct DVDFileInfo {
 #define PC_GAME_FILES_ROOT "orig/G8MJ01/files"
 
 static void make_pc_path(char* out, const char* path) {
+    while (path[0] == '.' && path[1] == '/') {
+        path += 2;
+    }
+
     if (path[0] == '/') {
         sprintf(out, "%s%s", PC_GAME_FILES_ROOT, path);
     } else {

@@ -28,9 +28,9 @@ static void test_file(const char* path) {
 }
 
 int main(void) {
-    test_file("/m/aaa_00/t");
-    test_file("/m/aaa_00/s");
-    test_file("/m/aaa_00/d");
-    test_file("/m/aaa_00/c");
+    test_file("./m/aaa_00/d");
+    test_file("./m/aaa_00/t");
+    test_file("./m/aaa_00/s");
+    test_file("./m/aaa_00/c");
     return 0;
 }
