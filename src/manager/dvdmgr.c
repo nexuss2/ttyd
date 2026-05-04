@@ -15,7 +15,7 @@
 #ifdef PLATFORM_PC
 BOOL PlatformFileExists(const char* path);
 BOOL PlatformFileOpen(const char* path, DVDFileInfo* info);
-s32 PlatformFileRead(DVDFileInfo* info, void* address, u32 size, s32 offset);
+s32 PlatformFileRead(const char* path, DVDFileInfo* info, void* address, u32 size, s32 offset);
 void PlatformFileClose(DVDFileInfo* info);
 #endif
 
@@ -108,7 +108,7 @@ void DVDMgrMain(void) { //1:1
             }
             
 #ifdef PLATFORM_PC
-            result = PlatformFileRead(&entry->info, entry->address, size, entry->offset + entry->position);
+            result = PlatformFileRead(entry->name, &entry->info, entry->address, size, entry->offset + entry->position);
 #else
             result = DVDRead(&entry->info, entry->address, size, entry->offset + entry->position);
 #endif

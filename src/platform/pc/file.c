@@ -46,7 +46,7 @@ BOOL PlatformFileOpen(const char* path, DVDFileInfo* info) {
     return TRUE;
 }
 
-s32 PlatformFileRead(DVDFileInfo* info, void* address, u32 size, s32 offset) {
+s32 PlatformFileRead(const char* path, DVDFileInfo* info, void* address, u32 size, s32 offset) {
     return -1;
 }
 
