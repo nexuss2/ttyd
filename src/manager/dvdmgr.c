@@ -136,7 +136,6 @@ void DVDMgrMain(void) { //1:1
                 valid = TRUE;
             }
         }
-        
         if (entry->status & DVDMGR_CLOSED) {
 #ifdef PLATFORM_PC
             PlatformFileClose(&entry->info);
@@ -168,7 +167,7 @@ DVDEntry* DVDMgrOpen(const char* path, u8 priority, u16 unknown) { //1:1
         return NULL;
     }
 #endif
-    
+
     for (entry = dvdq, i = 0; i < DVDEntryCount; i++, entry++) {
         if (!(entry->status & DVDMGR_INUSE)) {
             break;
@@ -177,6 +176,7 @@ DVDEntry* DVDMgrOpen(const char* path, u8 priority, u16 unknown) { //1:1
     if (i >= DVDEntryCount) {
         return NULL;
     }
+
     memset(entry, 0, sizeof(DVDEntry));
     strcpy(entry->name, path);
     entry->status = 0;
@@ -187,6 +187,7 @@ DVDEntry* DVDMgrOpen(const char* path, u8 priority, u16 unknown) { //1:1
     entry->offset = 0;
     entry->position = 0;
     entry->status |= DVDMGR_INUSE;
+
 #ifdef PLATFORM_PC
     if (!PlatformFileOpen(entry->name, &entry->info)) {
         memset(entry, 0, sizeof(DVDEntry));
@@ -198,6 +199,7 @@ DVDEntry* DVDMgrOpen(const char* path, u8 priority, u16 unknown) { //1:1
         return NULL;
     }
 #endif
+
     return entry;
 }
 
@@ -212,32 +214,20 @@ s32 DVDMgrRead(DVDEntry* entry, void* address, u32 size, s32 offset) {
     return result;
 }
 #else
-
-//return is s32 even though it cannot be negative
 s32 DVDMgrRead(DVDEntry* entry, void* address, u32 size, s32 offset) {
-	entry->address = address;
-	entry->bytesLeft = size;
-	entry->offset = offset;
-	entry->status |= DVDMGR_READING;
-	entry->status &= ~DVDMGR_FINISHED;
-	entry->callback = NULL;
-	entry->position = 0;
-	while (!(entry->status & DVDMGR_FINISHED)) {
-		OSYieldThread();
-	}
-	return entry->info.length;
+    entry->address = address;
+    entry->bytesLeft = size;
+    entry->offset = offset;
+    entry->status |= DVDMGR_READING;
+    entry->status &= ~DVDMGR_FINISHED;
+    entry->callback = NULL;
+    entry->position = 0;
+    while (!(entry->status & DVDMGR_FINISHED)) {
+        OSYieldThread();
+    }
+    return entry->info.length;
 }
 #endif
-
-void DVDMgrReadAsync(DVDEntry* entry, void* address, u32 size, s32 offset, DVDCallback callback) {
-	entry->address = address;
-	entry->bytesLeft = size;
-	entry->offset = offset;
-	entry->status |= DVDMGR_READING;
-	entry->status &= ~DVDMGR_FINISHED;
-	entry->callback = callback;
-	entry->position = 0;
-}
 
 void DVDMgrClose(DVDEntry* entry) {
 	entry->status |= DVDMGR_CLOSED;
@@ -246,6 +236,7 @@ void DVDMgrClose(DVDEntry* entry) {
 u32 DVDMgrGetLength(DVDEntry* entry) {
 	return entry->info.length;
 }
+
 
 void DVDMgrSetupCallback(DVDMgrCallback callback) {
 	_callback = callback;
