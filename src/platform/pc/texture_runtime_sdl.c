@@ -53,6 +53,14 @@ void PCTextureRuntimeDraw(PCTextureRuntime* texture, int x, int y, int draw_widt
     PCRenderSDLDrawTexture(texture->texture, x, y, draw_width, draw_height);
 }
 
+SDL_Texture* PCTextureRuntimeGetSDLTexture(PCTextureRuntime* texture) {
+    if (!texture) {
+        return 0;
+    }
+
+    return PCRenderSDLTextureRaw(texture->texture);
+}
+
 void PCTextureRuntimeDestroy(PCTextureRuntime* texture) {
     if (!texture) {
         return;

@@ -1,7 +1,9 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <SDL.h>
 #include <string.h>
 #include "platform/pc/texture_runtime_sdl.h"
+#include <SDL.h>
 
 typedef unsigned int u32;
 
@@ -141,4 +143,21 @@ void PCMapTextureSetDestroy(PCMapTextureSet* set) {
     }
 
     free(set);
+}
+
+
+SDL_Texture* PCMapTextureSetFindTexture(PCMapTextureSet* set, const char* name) {
+    int i;
+
+    if (!set || !name || !name[0]) {
+        return 0;
+    }
+
+    for (i = 0; i < 64; i++) {
+        if (set->textures[i] && set->names[i][0] && strcmp(set->names[i], name) == 0) {
+            return PCTextureRuntimeGetSDLTexture(set->textures[i]);
+        }
+    }
+
+    return 0;
 }

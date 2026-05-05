@@ -18,5 +18,6 @@ int PCRenderSDLDrawRGBScaled(const unsigned char* pixels, int width, int height,
 PCSDLTexture* PCRenderSDLCreateTextureRGB(const unsigned char* pixels, int width, int height);
 void PCRenderSDLDrawTexture(PCSDLTexture* texture, int x, int y, int draw_width, int draw_height);
 void PCRenderSDLDestroyTexture(PCSDLTexture* texture);
+SDL_Texture* PCRenderSDLTextureRaw(PCSDLTexture* texture);
 
 SDL_Renderer* PCRenderSDLGetRenderer(void);
