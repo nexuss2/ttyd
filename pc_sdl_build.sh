@@ -84,6 +84,18 @@ cc -DPLATFORM_PC -Iinclude \
   $(pkg-config --libs sdl2)
 
 cc -DPLATFORM_PC -Iinclude \
+  pc_sdl_fake_scene_test.c \
+  build/pc/file.o \
+  build/pc/arcdrv_pc.o \
+  build/pc/mapdrv_pc.o \
+  build/pc/tpl_export_pc.o \
+  build/pc/render_sdl_pc.o \
+  build/pc/texture_runtime_sdl.o \
+  build/pc/map_texture_runtime_sdl.o \
+  -o build/pc/sdl_fake_scene_test \
+  $(pkg-config --libs sdl2)
+
+cc -DPLATFORM_PC -Iinclude \
   pc_sdl_named_texture_test.c \
   build/pc/file.o \
   build/pc/arcdrv_pc.o \
@@ -104,3 +116,4 @@ cc -DPLATFORM_PC -Iinclude \
 ./build/pc/sdl_runtime_texture_sheet_test
 ./build/pc/sdl_map_texture_set_test aaa_00
 ./build/pc/sdl_named_texture_test
+./build/pc/sdl_fake_scene_test
