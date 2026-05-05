@@ -83,3 +83,33 @@ void PCRenderSDLShutdown(void) {
 
     SDL_Quit();
 }
+
+int PCRenderSDLSaveBMP(const char* path) {
+    SDL_Surface* surface;
+
+    if (!s_renderer) {
+        return 0;
+    }
+
+    surface = SDL_CreateRGBSurfaceWithFormat(0, 640, 480, 32, SDL_PIXELFORMAT_ARGB8888);
+    if (!surface) {
+        printf("SDL_CreateRGBSurfaceWithFormat failed: %s\n", SDL_GetError());
+        return 0;
+    }
+
+    if (SDL_RenderReadPixels(s_renderer, NULL, SDL_PIXELFORMAT_ARGB8888, surface->pixels, surface->pitch) != 0) {
+        printf("SDL_RenderReadPixels failed: %s\n", SDL_GetError());
+        SDL_FreeSurface(surface);
+        return 0;
+    }
+
+    if (SDL_SaveBMP(surface, path) != 0) {
+        printf("SDL_SaveBMP failed: %s\n", SDL_GetError());
+        SDL_FreeSurface(surface);
+        return 0;
+    }
+
+    SDL_FreeSurface(surface);
+    printf("saved %s\n", path);
+    return 1;
+}

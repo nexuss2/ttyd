@@ -6,6 +6,7 @@ void PCRenderSDLClear(void);
 void PCRenderSDLEndFrame(void);
 int PCRenderSDLPollQuit(void);
 void PCRenderSDLShutdown(void);
+int PCRenderSDLSaveBMP(const char* path);
 
 int main(void) {
     int frame;
@@ -22,6 +23,10 @@ int main(void) {
         PCRenderSDLBeginFrame();
         PCRenderSDLClear();
         PCRenderSDLEndFrame();
+
+        if (frame == 0) {
+            PCRenderSDLSaveBMP("build/pc/sdl_window_test.bmp");
+        }
     }
 
     PCRenderSDLShutdown();
