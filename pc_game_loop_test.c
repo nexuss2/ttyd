@@ -1,4 +1,4 @@
-int PCGameLoopRunWithContent(const char* map, const char* msg);
+#include "platform/pc/game_loop_pc.h"
 
 int main(int argc, char** argv) {
     const char* map = "aaa_00";
