@@ -37,6 +37,7 @@ cc -DPLATFORM_PC pc_asset_test.c build/pc/file.o -o build/pc/asset_test
 cc -DPLATFORM_PC pc_arcdrv_test.c build/pc/file.o build/pc/arcdrv_pc.o -o build/pc/arcdrv_test
 cc -DPLATFORM_PC pc_map_test.c build/pc/file.o -o build/pc/map_test
 cc -DPLATFORM_PC pc_msg_test.c build/pc/file.o build/pc/msgdrv_pc.o -o build/pc/msg_test
+cc -DPLATFORM_PC pc_sound_test.c build/pc/file.o -o build/pc/sound_test
 cc -DPLATFORM_PC pc_msg_export.c build/pc/file.o build/pc/msgdrv_pc.o -o build/pc/msg_export
 cc -DPLATFORM_PC pc_tpl_test.c build/pc/file.o build/pc/arcdrv_pc.o build/pc/tpl_pc.o -o build/pc/tpl_test
 cc -DPLATFORM_PC pc_tpl_export_test.c build/pc/file.o build/pc/arcdrv_pc.o build/pc/tpl_export_pc.o -o build/pc/tpl_export_test
@@ -55,6 +56,7 @@ cc -DPLATFORM_PC pc_map_info_export.c build/pc/file.o build/pc/arcdrv_pc.o build
 ./build/pc/arcdrv_test
 ./build/pc/map_test
 ./build/pc/msg_test
+./build/pc/sound_test
 ./build/pc/tpl_test
 ./build/pc/tpl_export_test
 ./build/pc/tpl_cmpr_test
