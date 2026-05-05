@@ -10,11 +10,7 @@ int mapLoadPC(const char* map);
 
 int msgLoadPC(const char* filename);
 
-int PCRenderInit(int width, int height);
-void PCRenderBeginFrame(void);
-void PCRenderClear(void);
-void PCRenderEndFrame(void);
-void PCRenderShutdown(void);
+#include "platform/pc/render_pc.h"
 
 int PCGameLoopRunWithContent(const char* map, const char* msg) {
     unsigned int start;
