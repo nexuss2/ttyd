@@ -38,12 +38,22 @@ static short be16s(const unsigned char* p) {
     return (short)(((unsigned short)p[0] << 8) | p[1]);
 }
 
-static void get_pos(const unsigned char* data, u32 pos_base, int index, float* x, float* y, float* z) {
+static float bef32(const unsigned char* p) {
+    union {
+        u32 u;
+        float f;
+    } v;
+
+    v.u = be32(p);
+    return v.f;
+}
+
+static void get_pos(const unsigned char* data, u32 pos_base, int index, float tx, float ty, float tz, float* x, float* y, float* z) {
     const unsigned char* p = data + 0x20 + pos_base + index * 6;
 
-    *x = be16s(p + 0) / 100.0f;
-    *y = be16s(p + 2) / 100.0f;
-    *z = be16s(p + 4) / 100.0f;
+    *x = be16s(p + 0) / 100.0f + tx;
+    *y = be16s(p + 2) / 100.0f + ty;
+    *z = be16s(p + 4) / 100.0f + tz;
 }
 
 static int sx(float x, float z) {
@@ -73,10 +83,11 @@ static void add_line(PCMapRuntime* map, int x0, int y0, int x1, int y1) {
     map->lines[map->line_count].y0 = y0;
     map->lines[map->line_count].x1 = x1;
     map->lines[map->line_count].y1 = y1;
+    map->lines[map->line_count].y1 = y1;
     map->line_count++;
 }
 
-static void cache_display_list(PCMapRuntime* map, u32 mesh, u32 pos_base, int dl_index) {
+static void cache_display_list(PCMapRuntime* map, u32 mesh, u32 pos_base, int dl_index, float tx, float ty, float tz) {
     u32 dl = be32(map->data + 0x20 + mesh + 0x10 + dl_index * 8);
     u32 dl_len = be32(map->data + 0x20 + mesh + 0x14 + dl_index * 8);
     const unsigned char* p;
@@ -103,7 +114,7 @@ static void cache_display_list(PCMapRuntime* map, u32 mesh, u32 pos_base, int dl
 
     for (i = 0; i < count; i++) {
         int pos_index = be16u(p + 0);
-        get_pos(map->data, pos_base, pos_index, &x[i], &y[i], &z[i]);
+        get_pos(map->data, pos_base, pos_index, tx, ty, tz, &x[i], &y[i], &z[i]);
         p += 10;
     }
 
@@ -113,7 +124,7 @@ static void cache_display_list(PCMapRuntime* map, u32 mesh, u32 pos_base, int dl
     }
 }
 
-static void cache_mesh(PCMapRuntime* map, u32 mesh) {
+static void cache_mesh(PCMapRuntime* map, u32 mesh, float tx, float ty, float tz) {
     u32 vcd;
     u32 pos_base;
     u32 display_list_count;
@@ -136,15 +147,18 @@ static void cache_mesh(PCMapRuntime* map, u32 mesh) {
     }
 
     for (i = 0; i < display_list_count; i++) {
-        cache_display_list(map, mesh, pos_base, i);
+        cache_display_list(map, mesh, pos_base, i, tx, ty, tz);
     }
 }
 
-static void cache_joint_tree(PCMapRuntime* map, u32 joint) {
+static void cache_joint_tree(PCMapRuntime* map, u32 joint, float parent_tx, float parent_ty, float parent_tz) {
     const unsigned char* j;
     u32 child;
     u32 next;
     u32 part_count;
+    float tx;
+    float ty;
+    float tz;
     u32 i;
 
     if (!map || joint == 0 || 0x20 + joint + 0x68 > map->size) {
@@ -152,20 +166,25 @@ static void cache_joint_tree(PCMapRuntime* map, u32 joint) {
     }
 
     j = map->data + 0x20 + joint;
+
     child = be32(j + 0x0c);
     next = be32(j + 0x10);
     part_count = be32(j + 0x5c);
+
+    tx = parent_tx + bef32(j + 0x30);
+    ty = parent_ty + bef32(j + 0x34);
+    tz = parent_tz + bef32(j + 0x38);
 
     if (part_count > 0 && part_count < 64) {
         for (i = 0; i < part_count; i++) {
             u32 part = 0x60 + i * 8;
             u32 mesh = be32(j + part + 4);
-            cache_mesh(map, mesh);
+            cache_mesh(map, mesh, tx, ty, tz);
         }
     }
 
-    cache_joint_tree(map, child);
-    cache_joint_tree(map, next);
+    cache_joint_tree(map, child, tx, ty, tz);
+    cache_joint_tree(map, next, parent_tx, parent_ty, parent_tz);
 }
 
 PCMapRuntime* PCMapRuntimeLoad(const char* map_name) {
@@ -184,9 +203,9 @@ PCMapRuntime* PCMapRuntimeLoad(const char* map_name) {
     out->size = mapGetPCDataSize();
     out->root_joint = be32(out->data + 0x20 + 4);
 
-    cache_joint_tree(out, out->root_joint);
+    cache_joint_tree(out, out->root_joint, 0.0f, 0.0f, 0.0f);
 
-    printf("loaded real map runtime %s root=%06x size=%u cachedLines=%d\n",
+    printf("loaded real map runtime %s root=%06x size=%u cachedLines=%d with joint translations\n",
         map_name,
         out->root_joint,
         out->size,
