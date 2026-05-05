@@ -294,3 +294,82 @@ int PCRenderSDLDrawRGBScaled(const unsigned char* pixels, int width, int height,
 
     return 1;
 }
+
+typedef struct PCSDLTexture {
+    SDL_Texture* texture;
+    int width;
+    int height;
+} PCSDLTexture;
+
+PCSDLTexture* PCRenderSDLCreateTextureRGB(const unsigned char* pixels, int width, int height) {
+    SDL_Surface* surface;
+    PCSDLTexture* out;
+
+    if (!s_renderer || !pixels || width <= 0 || height <= 0) {
+        return 0;
+    }
+
+    out = (PCSDLTexture*)malloc(sizeof(PCSDLTexture));
+    if (!out) {
+        return 0;
+    }
+
+    surface = SDL_CreateRGBSurfaceFrom(
+        (void*)pixels,
+        width,
+        height,
+        24,
+        width * 3,
+        0x0000ff,
+        0x00ff00,
+        0xff0000,
+        0
+    );
+
+    if (!surface) {
+        free(out);
+        printf("SDL_CreateRGBSurfaceFrom failed: %s\n", SDL_GetError());
+        return 0;
+    }
+
+    out->texture = SDL_CreateTextureFromSurface(s_renderer, surface);
+    SDL_FreeSurface(surface);
+
+    if (!out->texture) {
+        free(out);
+        printf("SDL_CreateTextureFromSurface failed: %s\n", SDL_GetError());
+        return 0;
+    }
+
+    out->width = width;
+    out->height = height;
+
+    return out;
+}
+
+void PCRenderSDLDrawTexture(PCSDLTexture* texture, int x, int y, int draw_width, int draw_height) {
+    SDL_Rect dst;
+
+    if (!s_renderer || !texture || !texture->texture) {
+        return;
+    }
+
+    dst.x = x;
+    dst.y = y;
+    dst.w = draw_width > 0 ? draw_width : texture->width;
+    dst.h = draw_height > 0 ? draw_height : texture->height;
+
+    SDL_RenderCopy(s_renderer, texture->texture, NULL, &dst);
+}
+
+void PCRenderSDLDestroyTexture(PCSDLTexture* texture) {
+    if (!texture) {
+        return;
+    }
+
+    if (texture->texture) {
+        SDL_DestroyTexture(texture->texture);
+    }
+
+    free(texture);
+}
