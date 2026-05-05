@@ -6,3 +6,5 @@ void PCRenderSDLClear(void);
 void PCRenderSDLEndFrame(void);
 int PCRenderSDLPollQuit(void);
 void PCRenderSDLShutdown(void);
+int PCRenderSDLSaveBMP(const char* path);
+int PCRenderSDLDrawPPM(const char* path, int x, int y);
