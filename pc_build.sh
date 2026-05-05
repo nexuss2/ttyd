@@ -45,6 +45,7 @@ cc -DPLATFORM_PC pc_tpl_ia4_test.c build/pc/file.o build/pc/arcdrv_pc.o build/pc
 cc -DPLATFORM_PC pc_tpl_export_supported_test.c build/pc/file.o build/pc/arcdrv_pc.o build/pc/tpl_export_pc.o -o build/pc/tpl_export_supported_test
 cc -DPLATFORM_PC pc_texture_export.c build/pc/file.o build/pc/arcdrv_pc.o build/pc/tpl_export_pc.o -o build/pc/texture_export
 cc -DPLATFORM_PC pc_map_texture_export.c build/pc/file.o build/pc/arcdrv_pc.o build/pc/tpl_export_pc.o -o build/pc/map_texture_export
+cc -DPLATFORM_PC pc_map_info_export.c build/pc/file.o build/pc/arcdrv_pc.o build/pc/mapdrv_pc.o -o build/pc/map_info_export
 
 ./build/pc/ttyd_pc
 ./build/pc/asset_test
