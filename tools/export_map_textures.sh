@@ -9,7 +9,14 @@ fi
 
 for map in $maps; do
   echo "Exporting $map"
+
   ./build/pc/map_texture_export "$map"
+  ./build/pc/map_info_export "$map"
+
   python3 tools/ppm_to_png.py "build/pc/${map}_*.ppm"
   python3 tools/png_contact_sheet.py "$map"
+
+  echo "Wrote:"
+  echo "  build/pc/${map}_texture_names.txt"
+  echo "  build/pc/${map}_sheet.png"
 done
