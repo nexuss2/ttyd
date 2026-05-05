@@ -39,6 +39,7 @@ cc -DPLATFORM_PC pc_tpl_test.c build/pc/file.o build/pc/arcdrv_pc.o build/pc/tpl
 cc -DPLATFORM_PC pc_tpl_export_test.c build/pc/file.o build/pc/arcdrv_pc.o build/pc/tpl_export_pc.o -o build/pc/tpl_export_test
 cc -DPLATFORM_PC pc_tpl_cmpr_test.c build/pc/file.o build/pc/arcdrv_pc.o build/pc/tpl_export_pc.o -o build/pc/tpl_cmpr_test
 cc -DPLATFORM_PC pc_tpl_export_all_test.c build/pc/file.o build/pc/arcdrv_pc.o build/pc/tpl_export_pc.o -o build/pc/tpl_export_all_test
+cc -DPLATFORM_PC pc_tpl_rgb565_test.c build/pc/file.o build/pc/arcdrv_pc.o build/pc/tpl_export_pc.o -o build/pc/tpl_rgb565_test
 
 ./build/pc/ttyd_pc
 ./build/pc/asset_test
@@ -48,3 +49,4 @@ cc -DPLATFORM_PC pc_tpl_export_all_test.c build/pc/file.o build/pc/arcdrv_pc.o b
 ./build/pc/tpl_export_test
 ./build/pc/tpl_cmpr_test
 ./build/pc/tpl_export_all_test
+./build/pc/tpl_rgb565_test
