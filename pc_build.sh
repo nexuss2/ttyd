@@ -43,6 +43,7 @@ cc -DPLATFORM_PC pc_tpl_rgb565_test.c build/pc/file.o build/pc/arcdrv_pc.o build
 cc -DPLATFORM_PC pc_tpl_i8_test.c build/pc/file.o build/pc/arcdrv_pc.o build/pc/tpl_export_pc.o -o build/pc/tpl_i8_test
 cc -DPLATFORM_PC pc_tpl_ia4_test.c build/pc/file.o build/pc/arcdrv_pc.o build/pc/tpl_export_pc.o -o build/pc/tpl_ia4_test
 cc -DPLATFORM_PC pc_tpl_export_supported_test.c build/pc/file.o build/pc/arcdrv_pc.o build/pc/tpl_export_pc.o -o build/pc/tpl_export_supported_test
+cc -DPLATFORM_PC pc_texture_export.c build/pc/file.o build/pc/arcdrv_pc.o build/pc/tpl_export_pc.o -o build/pc/texture_export
 
 ./build/pc/ttyd_pc
 ./build/pc/asset_test
