@@ -10,10 +10,18 @@ int mapLoadPC(const char* map);
 void* mapGetPCData(void);
 u32 mapGetPCDataSize(void);
 
+typedef struct PCMapDrawPart {
+    u32 material;
+    u32 mesh;
+} PCMapDrawPart;
+
 struct PCMapRuntime {
     const unsigned char* data;
     u32 size;
     u32 root_joint;
+    PCMapDrawPart* parts;
+    int part_count;
+    int part_capacity;
 };
 
 static u32 be32(const unsigned char* p) {
@@ -42,6 +50,58 @@ static int sx(float x, float z) {
 
 static int sy(float y, float z) {
     return 620 - (int)(y * 3.0f) + (int)(z * 1.0f);
+}
+
+static void add_part(PCMapRuntime* map, u32 material, u32 mesh) {
+    PCMapDrawPart* next;
+
+    if (map->part_count >= map->part_capacity) {
+        int new_capacity = map->part_capacity ? map->part_capacity * 2 : 256;
+        next = (PCMapDrawPart*)realloc(map->parts, sizeof(PCMapDrawPart) * new_capacity);
+
+        if (!next) {
+            return;
+        }
+
+        map->parts = next;
+        map->part_capacity = new_capacity;
+    }
+
+    map->parts[map->part_count].material = material;
+    map->parts[map->part_count].mesh = mesh;
+    map->part_count++;
+}
+
+static void build_part_cache_from_joint(PCMapRuntime* map, u32 joint) {
+    const unsigned char* j;
+    u32 child;
+    u32 next;
+    u32 part_count;
+    u32 i;
+
+    if (!map || joint == 0 || 0x20 + joint + 0x68 > map->size) {
+        return;
+    }
+
+    j = map->data + 0x20 + joint;
+    child = be32(j + 0x0c);
+    next = be32(j + 0x10);
+    part_count = be32(j + 0x5c);
+
+    if (part_count > 0 && part_count < 64) {
+        for (i = 0; i < part_count; i++) {
+            u32 part = 0x60 + i * 8;
+            u32 material = be32(j + part + 0);
+            u32 mesh = be32(j + part + 4);
+
+            if (mesh) {
+                add_part(map, material, mesh);
+            }
+        }
+    }
+
+    build_part_cache_from_joint(map, child);
+    build_part_cache_from_joint(map, next);
 }
 
 static void draw_display_list(const unsigned char* data, u32 mesh, u32 pos_base, int dl_index) {
@@ -79,43 +139,19 @@ static void draw_mesh(const unsigned char* data, u32 mesh) {
     u32 display_list_count = be32(data + 0x20 + mesh + 0x04);
     u32 i;
 
+    if (display_list_count > 256) {
+        return;
+    }
+
     for (i = 0; i < display_list_count; i++) {
         draw_display_list(data, mesh, pos_base, i);
     }
 }
 
-static void walk_joint_draw(const unsigned char* data, u32 size, u32 joint) {
-    const unsigned char* j;
-    u32 child;
-    u32 next;
-    u32 part_count;
-    u32 i;
-
-    if (joint == 0 || 0x20 + joint + 0x68 > size) {
-        return;
-    }
-
-    j = data + 0x20 + joint;
-    child = be32(j + 0x0c);
-    next = be32(j + 0x10);
-    part_count = be32(j + 0x5c);
-
-    if (part_count > 0 && part_count < 32) {
-        for (i = 0; i < part_count; i++) {
-            u32 part = 0x60 + i * 8;
-            u32 mesh = be32(j + part + 4);
-            draw_mesh(data, mesh);
-        }
-    }
-
-    walk_joint_draw(data, size, child);
-    walk_joint_draw(data, size, next);
-}
-
-PCMapRuntime* PCMapRuntimeLoad(const char* map) {
+PCMapRuntime* PCMapRuntimeLoad(const char* map_name) {
     PCMapRuntime* out;
 
-    if (!mapLoadPC(map)) {
+    if (!mapLoadPC(map_name)) {
         return 0;
     }
 
@@ -128,20 +164,36 @@ PCMapRuntime* PCMapRuntimeLoad(const char* map) {
     out->size = mapGetPCDataSize();
     out->root_joint = be32(out->data + 0x20 + 4);
 
-    printf("loaded real map runtime %s root=%06x size=%u\n", map, out->root_joint, out->size);
+    build_part_cache_from_joint(out, out->root_joint);
+
+    printf("loaded real map runtime %s root=%06x size=%u cachedParts=%d\n",
+        map_name,
+        out->root_joint,
+        out->size,
+        out->part_count);
 
     return out;
 }
 
 void PCMapRuntimeDrawWire(PCMapRuntime* map) {
+    int i;
+
     if (!map) {
         return;
     }
 
     SDL_SetRenderDrawColor(PCRenderSDLGetRenderer(), 255, 255, 255, 255);
-    walk_joint_draw(map->data, map->size, map->root_joint);
+
+    for (i = 0; i < map->part_count; i++) {
+        draw_mesh(map->data, map->parts[i].mesh);
+    }
 }
 
 void PCMapRuntimeDestroy(PCMapRuntime* map) {
+    if (!map) {
+        return;
+    }
+
+    free(map->parts);
     free(map);
 }
