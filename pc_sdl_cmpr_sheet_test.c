@@ -36,7 +36,7 @@ int main(void) {
 
         if (TPLDecodeCMPRAtIndexToRGB(tpl, length, i, &pixels, &width, &height)) {
             printf("draw texture %d %dx%d at %d,%d\n", i, width, height, x, y);
-            PCRenderSDLDrawRGB(pixels, width, height, x, y);
+            PCRenderSDLDrawRGBScaled(pixels, width, height, x, y, 96, 96);
             free(pixels);
         } else {
             printf("skip texture %d\n", i);

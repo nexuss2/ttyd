@@ -249,3 +249,48 @@ int PCRenderSDLDrawRGB(const unsigned char* pixels, int width, int height, int x
 
     return 1;
 }
+
+int PCRenderSDLDrawRGBScaled(const unsigned char* pixels, int width, int height, int x, int y, int draw_width, int draw_height) {
+    SDL_Surface* surface;
+    SDL_Texture* texture;
+    SDL_Rect dst;
+
+    if (!s_renderer || !pixels || width <= 0 || height <= 0 || draw_width <= 0 || draw_height <= 0) {
+        return 0;
+    }
+
+    surface = SDL_CreateRGBSurfaceFrom(
+        (void*)pixels,
+        width,
+        height,
+        24,
+        width * 3,
+        0x0000ff,
+        0x00ff00,
+        0xff0000,
+        0
+    );
+
+    if (!surface) {
+        printf("SDL_CreateRGBSurfaceFrom failed: %s\n", SDL_GetError());
+        return 0;
+    }
+
+    texture = SDL_CreateTextureFromSurface(s_renderer, surface);
+    SDL_FreeSurface(surface);
+
+    if (!texture) {
+        printf("SDL_CreateTextureFromSurface failed: %s\n", SDL_GetError());
+        return 0;
+    }
+
+    dst.x = x;
+    dst.y = y;
+    dst.w = draw_width;
+    dst.h = draw_height;
+
+    SDL_RenderCopy(s_renderer, texture, NULL, &dst);
+    SDL_DestroyTexture(texture);
+
+    return 1;
+}
