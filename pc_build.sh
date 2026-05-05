@@ -19,6 +19,7 @@ cc -DPLATFORM_PC -c src/platform/pc/mapdrv_pc.c -o build/pc/mapdrv_pc.o
 cc -DPLATFORM_PC -c src/platform/pc/msgdrv_pc.c -o build/pc/msgdrv_pc.o
 cc -DPLATFORM_PC -c src/platform/pc/runtime_pc.c -o build/pc/runtime_pc.o
 cc -DPLATFORM_PC -c src/platform/pc/game_loop_pc.c -o build/pc/game_loop_pc.o
+cc -DPLATFORM_PC -c src/platform/pc/render_pc.c -o build/pc/render_pc.o
 cc -DPLATFORM_PC -c src/platform/pc/tpl_pc.c -o build/pc/tpl_pc.o
 cc -DPLATFORM_PC -c src/platform/pc/tpl_export_pc.c -o build/pc/tpl_export_pc.o
 
@@ -45,7 +46,7 @@ cc -DPLATFORM_PC pc_map_test.c build/pc/file.o -o build/pc/map_test
 cc -DPLATFORM_PC pc_msg_test.c build/pc/file.o build/pc/msgdrv_pc.o -o build/pc/msg_test
 cc -DPLATFORM_PC pc_msg_export.c build/pc/file.o build/pc/msgdrv_pc.o -o build/pc/msg_export
 cc -DPLATFORM_PC pc_sound_test.c build/pc/file.o -o build/pc/sound_test
-cc -DPLATFORM_PC pc_game_loop_test.c build/pc/file.o build/pc/input.o build/pc/time.o build/pc/dvdmgr_pc.o build/pc/arcdrv_pc.o build/pc/mapdrv_pc.o build/pc/msgdrv_pc.o build/pc/game_loop_pc.o -o build/pc/game_loop_test
+cc -DPLATFORM_PC pc_game_loop_test.c build/pc/file.o build/pc/input.o build/pc/time.o build/pc/dvdmgr_pc.o build/pc/arcdrv_pc.o build/pc/mapdrv_pc.o build/pc/msgdrv_pc.o build/pc/game_loop_pc.o build/pc/render_pc.o -o build/pc/game_loop_test
 cc -DPLATFORM_PC pc_stm_test.c build/pc/file.o -o build/pc/stm_test
 cc -DPLATFORM_PC pc_tpl_test.c build/pc/file.o build/pc/arcdrv_pc.o build/pc/tpl_pc.o -o build/pc/tpl_test
 cc -DPLATFORM_PC pc_tpl_export_test.c build/pc/file.o build/pc/arcdrv_pc.o build/pc/tpl_export_pc.o -o build/pc/tpl_export_test
