@@ -83,6 +83,15 @@ static float bef32(const unsigned char* p) {
     return v.f;
 }
 
+static void get_uv(const unsigned char* data, u32 uv_base, int index, float* u, float* v) {
+    const unsigned char* p = data + 0x20 + uv_base + index * 4;
+    short su = be16s(p + 0);
+    short sv = be16s(p + 2);
+
+    *u = (float)su / 1024.0f;
+    *v = (float)sv / 1024.0f;
+}
+
 static void get_pos(const unsigned char* data, u32 pos_base, int index, float tx, float ty, float tz, float* x, float* y, float* z) {
     const unsigned char* p = data + 0x20 + pos_base + index * 6;
 
@@ -239,7 +248,7 @@ static void add_triangle(PCMapRuntime* map, u32 material, u32 texture_hash, floa
     map->triangle_count++;
 }
 
-static void cache_display_list(PCMapRuntime* map, u32 material, u32 mesh, u32 pos_base, int dl_index, float tx, float ty, float tz) {
+static void cache_display_list(PCMapRuntime* map, u32 material, u32 mesh, u32 pos_base, u32 uv_base, int dl_index, float tx, float ty, float tz) {
     u32 dl = be32(map->data + 0x20 + mesh + 0x10 + dl_index * 8);
     u32 dl_len = be32(map->data + 0x20 + mesh + 0x14 + dl_index * 8);
     const unsigned char* p;
@@ -268,9 +277,17 @@ static void cache_display_list(PCMapRuntime* map, u32 material, u32 mesh, u32 po
 
     for (i = 0; i < count; i++) {
         int pos_index = be16u(p + 0);
+        int uv_index = be16u(p + 6);
+
         get_pos(map->data, pos_base, pos_index, tx, ty, tz, &x[i], &y[i], &z[i]);
-        u[i] = 0.0f;
-        v[i] = 0.0f;
+
+        if (uv_base) {
+            get_uv(map->data, uv_base, uv_index, &u[i], &v[i]);
+        } else {
+            u[i] = 0.0f;
+            v[i] = 0.0f;
+        }
+
         p += 10;
     }
 
@@ -294,6 +311,7 @@ static void cache_display_list(PCMapRuntime* map, u32 material, u32 mesh, u32 po
 static void cache_mesh(PCMapRuntime* map, u32 material, u32 mesh, float tx, float ty, float tz) {
     u32 vcd;
     u32 pos_base;
+    u32 uv_base;
     u32 display_list_count;
     u32 i;
 
@@ -307,6 +325,7 @@ static void cache_mesh(PCMapRuntime* map, u32 material, u32 mesh, float tx, floa
     }
 
     pos_base = be32(map->data + 0x20 + vcd + 0x00);
+    uv_base = be32(map->data + 0x20 + vcd + 0x18);
     display_list_count = be32(map->data + 0x20 + mesh + 0x04);
 
     if (display_list_count > 256) {
@@ -314,7 +333,7 @@ static void cache_mesh(PCMapRuntime* map, u32 material, u32 mesh, float tx, floa
     }
 
     for (i = 0; i < display_list_count; i++) {
-        cache_display_list(map, material, mesh, pos_base, i, tx, ty, tz);
+        cache_display_list(map, material, mesh, pos_base, uv_base, i, tx, ty, tz);
     }
 }
 
