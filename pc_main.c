@@ -24,32 +24,41 @@ int effIsLoaded(void);
 void mapInit(void);
 int mapLoadPC(const char* map);
 
+int msgLoadPC(const char* filename);
+
+static void print_result(const char* name, int ok) {
+    printf("[%s] %s\n", ok ? "OK" : "FAIL", name);
+}
+
 int main(void) {
     printf("TTYD PC runner starting\n");
+    printf("tick: %u\n", PlatformGetTick());
 
     PlatformInputInit();
     DVDMgrInit();
 
-    printf("tick: %u\n", PlatformGetTick());
-
     fadeInit();
     fadeTexSetup();
-    printf("fade loaded: %d\n", fadeIsLoaded());
+    print_result("fade texture", fadeIsLoaded());
 
     envInit();
     envTexSetup();
-    printf("env loaded: %d\n", envIsLoaded());
+    print_result("env texture", envIsLoaded());
 
     windowInit();
     windowTexSetup();
-    printf("window loaded: %d\n", windowIsLoaded());
+    print_result("window texture", windowIsLoaded());
 
     effInit();
     effTexSetup();
-    printf("effect loaded: %d\n", effIsLoaded());
+    print_result("effect texture", effIsLoaded());
 
     mapInit();
-    printf("map loaded: %d\n", mapLoadPC("aaa_00"));
+    print_result("map aaa_00", mapLoadPC("aaa_00"));
+
+    print_result("message hei_00", msgLoadPC("hei_00"));
+
+    printf("PC runtime health check complete\n");
 
     return 0;
 }

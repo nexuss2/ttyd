@@ -31,6 +31,7 @@ cc -DPLATFORM_PC \
   build/pc/windowdrv_pc.o \
   build/pc/effdrv_pc.o \
   build/pc/mapdrv_pc.o \
+  build/pc/msgdrv_pc.o \
   -o build/pc/ttyd_pc
 
 cc -DPLATFORM_PC pc_asset_test.c build/pc/file.o -o build/pc/asset_test
