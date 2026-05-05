@@ -151,7 +151,10 @@ cc -DPLATFORM_PC -Iinclude \
   build/pc/arcdrv_pc.o \
   build/pc/mapdrv_pc.o \
   build/pc/render_sdl_pc.o \
+  build/pc/texture_runtime_sdl.o \
+  build/pc/map_texture_runtime_sdl.o \
   build/pc/map_runtime_sdl.o \
+  build/pc/tpl_export_pc.o \
   -o build/pc/sdl_real_map_runner \
   $(pkg-config --libs sdl2)
 

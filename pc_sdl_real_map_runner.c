@@ -52,10 +52,7 @@ static int run_once(const char* map_name, int use_auto, int draw_filled, float o
     return 0;
 }
 
-static int run_live(const char* map_name) {
-    float offset_x = 450.0f;
-    float offset_y = 620.0f;
-    float scale = 1.0f;
+static int run_live(const char* map_name, int use_auto, int draw_filled, float offset_x, float offset_y, float scale) {
     int frame = 0;
     int running = 1;
     PCMapRuntime* map;
@@ -139,11 +136,11 @@ static int run_live(const char* map_name) {
 
 int main(int argc, char** argv) {
     const char* map_name = "aaa_00";
+    int use_auto = 0;
+    int draw_filled = 0;
     float offset_x = 450.0f;
     float offset_y = 620.0f;
     float scale = 1.0f;
-    int use_auto = 0;
-    int draw_filled = 0;
     int debug_map = 0;
     int i;
 
@@ -164,7 +161,7 @@ int main(int argc, char** argv) {
     mapSetPCDebug(debug_map);
 
     if (argc > 2 && strcmp(argv[2], "--live") == 0) {
-        return run_live(map_name);
+        return run_live(map_name, use_auto, draw_filled, offset_x, offset_y, scale);
     }
 
     if (argc > 2 && strcmp(argv[2], "auto") == 0) {
@@ -187,5 +184,5 @@ int main(int argc, char** argv) {
         printf("filled flag set, using filled real geometry path\n");
     }
 
-    return run_once(map_name, use_auto, draw_filled, offset_x, offset_y, scale);
+    return run_live(map_name, use_auto, draw_filled, offset_x, offset_y, scale);
 }
