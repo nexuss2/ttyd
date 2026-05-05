@@ -22,6 +22,16 @@ cc -DPLATFORM_PC -Iinclude \
   $(pkg-config --libs sdl2)
 
 cc -DPLATFORM_PC -Iinclude \
+  pc_sdl_runtime_texture_sheet_test.c \
+  build/pc/file.o \
+  build/pc/arcdrv_pc.o \
+  build/pc/tpl_export_pc.o \
+  build/pc/render_sdl_pc.o \
+  build/pc/texture_runtime_sdl.o \
+  -o build/pc/sdl_runtime_texture_sheet_test \
+  $(pkg-config --libs sdl2)
+
+cc -DPLATFORM_PC -Iinclude \
   pc_sdl_texture_runtime_test.c \
   build/pc/file.o \
   build/pc/arcdrv_pc.o \
@@ -64,3 +74,4 @@ cc -DPLATFORM_PC -Iinclude \
 ./build/pc/sdl_cmpr_sheet_test
 ./build/pc/sdl_texture_cache_test
 ./build/pc/sdl_texture_runtime_test
+./build/pc/sdl_runtime_texture_sheet_test
