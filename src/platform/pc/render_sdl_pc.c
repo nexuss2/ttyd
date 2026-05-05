@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <SDL2/SDL.h>
 
 static SDL_Window* s_window;
@@ -121,5 +122,91 @@ int PCRenderSDLSaveBMP(const char* path) {
 
     SDL_FreeSurface(surface);
     printf("saved %s\n", path);
+    return 1;
+}
+
+int PCRenderSDLDrawPPM(const char* path, int x, int y) {
+    FILE* f;
+    char magic[3];
+    int width;
+    int height;
+    int maxv;
+    unsigned char* pixels;
+    SDL_Surface* surface;
+    SDL_Texture* texture;
+    SDL_Rect dst;
+
+    if (!s_renderer) {
+        return 0;
+    }
+
+    f = fopen(path, "rb");
+    if (!f) {
+        printf("failed to open ppm: %s\n", path);
+        return 0;
+    }
+
+    if (fscanf(f, "%2s\n%d %d\n%d\n", magic, &width, &height, &maxv) != 4) {
+        fclose(f);
+        printf("bad ppm header: %s\n", path);
+        return 0;
+    }
+
+    if (magic[0] != 'P' || magic[1] != '6' || maxv != 255) {
+        fclose(f);
+        printf("unsupported ppm: %s\n", path);
+        return 0;
+    }
+
+    pixels = (unsigned char*)malloc(width * height * 3);
+    if (!pixels) {
+        fclose(f);
+        return 0;
+    }
+
+    if (fread(pixels, 1, width * height * 3, f) != (size_t)(width * height * 3)) {
+        free(pixels);
+        fclose(f);
+        printf("bad ppm data: %s\n", path);
+        return 0;
+    }
+
+    fclose(f);
+
+    surface = SDL_CreateRGBSurfaceFrom(
+        pixels,
+        width,
+        height,
+        24,
+        width * 3,
+        0x0000ff,
+        0x00ff00,
+        0xff0000,
+        0
+    );
+
+    if (!surface) {
+        free(pixels);
+        printf("SDL_CreateRGBSurfaceFrom failed: %s\n", SDL_GetError());
+        return 0;
+    }
+
+    texture = SDL_CreateTextureFromSurface(s_renderer, surface);
+    SDL_FreeSurface(surface);
+    free(pixels);
+
+    if (!texture) {
+        printf("SDL_CreateTextureFromSurface failed: %s\n", SDL_GetError());
+        return 0;
+    }
+
+    dst.x = x;
+    dst.y = y;
+    dst.w = width;
+    dst.h = height;
+
+    SDL_RenderCopy(s_renderer, texture, NULL, &dst);
+    SDL_DestroyTexture(texture);
+
     return 1;
 }

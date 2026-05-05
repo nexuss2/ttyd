@@ -7,6 +7,7 @@ void PCRenderSDLEndFrame(void);
 int PCRenderSDLPollQuit(void);
 void PCRenderSDLShutdown(void);
 int PCRenderSDLSaveBMP(const char* path);
+int PCRenderSDLDrawPPM(const char* path, int x, int y);
 
 int main(void) {
     int frame;
@@ -22,6 +23,7 @@ int main(void) {
 
         PCRenderSDLBeginFrame();
         PCRenderSDLClear();
+        PCRenderSDLDrawPPM("build/pc/aaa_00_cmpr.ppm", 288, 208);
         PCRenderSDLEndFrame();
 
         if (frame == 0) {
