@@ -1,13 +1,10 @@
 #include <stdio.h>
 #include "platform/pc/render_sdl_pc.h"
+#include "platform/pc/texture_runtime_sdl.h"
 
 typedef unsigned int u32;
-typedef struct PCTextureRuntime PCTextureRuntime;
 
 void* arcOpen(const char* filename, void** addr, u32* length);
-PCTextureRuntime* PCTextureRuntimeCreateFromTPLCMPR(const void* tpl, u32 size, int index);
-void PCTextureRuntimeDraw(PCTextureRuntime* texture, int x, int y, int draw_width, int draw_height);
-void PCTextureRuntimeDestroy(PCTextureRuntime* texture);
 
 int main(void) {
     u32 length = 0;
