@@ -43,8 +43,18 @@ void PCRenderSDLBeginFrame(void) {
 }
 
 void PCRenderSDLClear(void) {
+    SDL_Rect rect;
+
     SDL_SetRenderDrawColor(s_renderer, 20, 24, 32, 255);
     SDL_RenderClear(s_renderer);
+
+    rect.x = 220;
+    rect.y = 140;
+    rect.w = 200;
+    rect.h = 160;
+
+    SDL_SetRenderDrawColor(s_renderer, 180, 90, 40, 255);
+    SDL_RenderFillRect(s_renderer, &rect);
 }
 
 void PCRenderSDLEndFrame(void) {
