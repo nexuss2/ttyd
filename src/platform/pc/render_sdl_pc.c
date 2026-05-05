@@ -373,3 +373,7 @@ void PCRenderSDLDestroyTexture(PCSDLTexture* texture) {
 
     free(texture);
 }
+
+SDL_Renderer* PCRenderSDLGetRenderer(void) {
+    return s_renderer;
+}
