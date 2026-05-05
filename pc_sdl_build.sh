@@ -87,4 +87,4 @@ cc -DPLATFORM_PC -Iinclude \
 ./build/pc/sdl_texture_cache_test
 ./build/pc/sdl_texture_runtime_test
 ./build/pc/sdl_runtime_texture_sheet_test
-./build/pc/sdl_map_texture_set_test
+./build/pc/sdl_map_texture_set_test aaa_00
