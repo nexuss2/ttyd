@@ -26,6 +26,12 @@ struct PCMapRuntime {
     PCMapWorldLine* lines;
     int line_count;
     int line_capacity;
+    float min_x;
+    float min_y;
+    float min_z;
+    float max_x;
+    float max_y;
+    float max_z;
 };
 
 static float s_view_offset_x = 450.0f;
@@ -84,6 +90,26 @@ static void add_world_line(PCMapRuntime* map, float x0, float y0, float z0, floa
         map->lines = next;
         map->line_capacity = new_capacity;
     }
+
+    if (map->line_count == 0) {
+        map->min_x = map->max_x = x0;
+        map->min_y = map->max_y = y0;
+        map->min_z = map->max_z = z0;
+    }
+
+    if (x0 < map->min_x) map->min_x = x0;
+    if (x1 < map->min_x) map->min_x = x1;
+    if (y0 < map->min_y) map->min_y = y0;
+    if (y1 < map->min_y) map->min_y = y1;
+    if (z0 < map->min_z) map->min_z = z0;
+    if (z1 < map->min_z) map->min_z = z1;
+
+    if (x0 > map->max_x) map->max_x = x0;
+    if (x1 > map->max_x) map->max_x = x1;
+    if (y0 > map->max_y) map->max_y = y0;
+    if (y1 > map->max_y) map->max_y = y1;
+    if (z0 > map->max_z) map->max_z = z0;
+    if (z1 > map->max_z) map->max_z = z1;
 
     map->lines[map->line_count].x0 = x0;
     map->lines[map->line_count].y0 = y0;
@@ -218,6 +244,11 @@ PCMapRuntime* PCMapRuntimeLoad(const char* map_name) {
         out->size,
         out->line_count);
 
+    printf("real map bounds x=[%.2f, %.2f] y=[%.2f, %.2f] z=[%.2f, %.2f]\n",
+        out->min_x, out->max_x,
+        out->min_y, out->max_y,
+        out->min_z, out->max_z);
+
     return out;
 }
 
@@ -225,6 +256,53 @@ void PCMapRuntimeSetView(float offset_x, float offset_y, float scale) {
     s_view_offset_x = offset_x;
     s_view_offset_y = offset_y;
     s_view_scale = scale;
+}
+
+void PCMapRuntimeUseAutoView(PCMapRuntime* map, int width, int height) {
+    float min_px;
+    float max_px;
+    float min_py;
+    float max_py;
+    float w;
+    float h;
+    float scale_x;
+    float scale_y;
+    float scale;
+
+    if (!map || map->line_count == 0) {
+        return;
+    }
+
+    min_px = (map->min_x * 5.0f) + (map->min_z * 1.5f);
+    max_px = (map->max_x * 5.0f) + (map->max_z * 1.5f);
+    min_py = (-map->max_y * 3.0f) + (map->min_z * 1.0f);
+    max_py = (-map->min_y * 3.0f) + (map->max_z * 1.0f);
+
+    w = max_px - min_px;
+    h = max_py - min_py;
+
+    if (w < 1.0f) {
+        w = 1.0f;
+    }
+
+    if (h < 1.0f) {
+        h = 1.0f;
+    }
+
+    scale_x = (float)(width - 80) / w;
+    scale_y = (float)(height - 80) / h;
+    scale = scale_x < scale_y ? scale_x : scale_y;
+
+    s_view_scale = scale;
+    s_view_offset_x = ((float)width * 0.5f) - ((min_px + max_px) * 0.5f * scale);
+    s_view_offset_y = ((float)height * 0.5f) - ((min_py + max_py) * 0.5f * scale);
+
+    printf("auto view offset=(%.2f, %.2f) scale=%.4f projectedSize=(%.2f, %.2f)\n",
+        s_view_offset_x,
+        s_view_offset_y,
+        s_view_scale,
+        w,
+        h);
 }
 
 void PCMapRuntimeDrawWire(PCMapRuntime* map) {

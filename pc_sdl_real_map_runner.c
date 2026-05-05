@@ -4,7 +4,7 @@
 #include "platform/pc/render_sdl_pc.h"
 #include "platform/pc/map_runtime_sdl.h"
 
-static int run_once(const char* map_name, float offset_x, float offset_y, float scale) {
+static int run_once(const char* map_name, int use_auto, float offset_x, float offset_y, float scale) {
     PCMapRuntime* map;
 
     if (!PCRenderSDLInit(960, 720)) {
@@ -17,7 +17,11 @@ static int run_once(const char* map_name, float offset_x, float offset_y, float 
         return 1;
     }
 
-    PCMapRuntimeSetView(offset_x, offset_y, scale);
+    if (use_auto) {
+        PCMapRuntimeUseAutoView(map, 960, 720);
+    } else {
+        PCMapRuntimeSetView(offset_x, offset_y, scale);
+    }
 
     PCRenderSDLBeginFrame();
     PCRenderSDLClear();
@@ -29,7 +33,13 @@ static int run_once(const char* map_name, float offset_x, float offset_y, float 
     PCMapRuntimeDestroy(map);
     PCRenderSDLShutdown();
 
-    printf("saved real map %s offset=(%.2f, %.2f) scale=%.2f\n", map_name, offset_x, offset_y, scale);
+    printf("saved real map %s mode=%s offset=(%.2f, %.2f) scale=%.2f\n",
+        map_name,
+        use_auto ? "auto" : "manual",
+        offset_x,
+        offset_y,
+        scale);
+
     return 0;
 }
 
@@ -51,7 +61,7 @@ static int run_live(const char* map_name) {
         return 1;
     }
 
-    printf("LIVE MODE: click the SDL window first. Arrow keys pan, Q/E zoom, ESC quit.\n");
+    printf("LIVE MODE: click the SDL window first. Arrow keys pan, Q/E zoom, ESC quit, S screenshot.\n");
 
     while (running) {
         SDL_Event event;
@@ -120,6 +130,7 @@ int main(int argc, char** argv) {
     float offset_x = 450.0f;
     float offset_y = 620.0f;
     float scale = 1.0f;
+    int use_auto = 0;
 
     if (argc > 1) {
         map_name = argv[1];
@@ -129,17 +140,21 @@ int main(int argc, char** argv) {
         return run_live(map_name);
     }
 
-    if (argc > 2) {
-        offset_x = (float)atof(argv[2]);
+    if (argc > 2 && strcmp(argv[2], "auto") == 0) {
+        use_auto = 1;
+    } else {
+        if (argc > 2) {
+            offset_x = (float)atof(argv[2]);
+        }
+
+        if (argc > 3) {
+            offset_y = (float)atof(argv[3]);
+        }
+
+        if (argc > 4) {
+            scale = (float)atof(argv[4]);
+        }
     }
 
-    if (argc > 3) {
-        offset_y = (float)atof(argv[3]);
-    }
-
-    if (argc > 4) {
-        scale = (float)atof(argv[4]);
-    }
-
-    return run_once(map_name, offset_x, offset_y, scale);
+    return run_once(map_name, use_auto, offset_x, offset_y, scale);
 }
