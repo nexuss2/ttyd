@@ -6,29 +6,31 @@
 
 typedef unsigned int u32;
 
-static float s_view_offset_x = 450.0f;
-static float s_view_offset_y = 620.0f;
-static float s_view_scale = 1.0f;
-
 int mapLoadPC(const char* map);
 void* mapGetPCData(void);
 u32 mapGetPCDataSize(void);
 
-typedef struct PCMapLine {
-    int x0;
-    int y0;
-    int x1;
-    int y1;
-} PCMapLine;
+typedef struct PCMapWorldLine {
+    float x0;
+    float y0;
+    float z0;
+    float x1;
+    float y1;
+    float z1;
+} PCMapWorldLine;
 
 struct PCMapRuntime {
     const unsigned char* data;
     u32 size;
     u32 root_joint;
-    PCMapLine* lines;
+    PCMapWorldLine* lines;
     int line_count;
     int line_capacity;
 };
+
+static float s_view_offset_x = 450.0f;
+static float s_view_offset_y = 620.0f;
+static float s_view_scale = 1.0f;
 
 static u32 be32(const unsigned char* p) {
     return ((u32)p[0] << 24) | ((u32)p[1] << 16) | ((u32)p[2] << 8) | p[3];
@@ -60,20 +62,20 @@ static void get_pos(const unsigned char* data, u32 pos_base, int index, float tx
     *z = be16s(p + 4) / 100.0f + tz;
 }
 
-static int sx(float x, float z) {
+static int project_x(float x, float z) {
     return (int)(s_view_offset_x + ((x * 5.0f) + (z * 1.5f)) * s_view_scale);
 }
 
-static int sy(float y, float z) {
+static int project_y(float y, float z) {
     return (int)(s_view_offset_y + ((-y * 3.0f) + (z * 1.0f)) * s_view_scale);
 }
 
-static void add_line(PCMapRuntime* map, int x0, int y0, int x1, int y1) {
-    PCMapLine* next;
+static void add_world_line(PCMapRuntime* map, float x0, float y0, float z0, float x1, float y1, float z1) {
+    PCMapWorldLine* next;
 
     if (map->line_count >= map->line_capacity) {
         int new_capacity = map->line_capacity ? map->line_capacity * 2 : 4096;
-        next = (PCMapLine*)realloc(map->lines, sizeof(PCMapLine) * new_capacity);
+        next = (PCMapWorldLine*)realloc(map->lines, sizeof(PCMapWorldLine) * new_capacity);
 
         if (!next) {
             return;
@@ -85,9 +87,10 @@ static void add_line(PCMapRuntime* map, int x0, int y0, int x1, int y1) {
 
     map->lines[map->line_count].x0 = x0;
     map->lines[map->line_count].y0 = y0;
+    map->lines[map->line_count].z0 = z0;
     map->lines[map->line_count].x1 = x1;
     map->lines[map->line_count].y1 = y1;
-    map->lines[map->line_count].y1 = y1;
+    map->lines[map->line_count].z1 = z1;
     map->line_count++;
 }
 
@@ -124,7 +127,7 @@ static void cache_display_list(PCMapRuntime* map, u32 mesh, u32 pos_base, int dl
 
     for (i = 0; i < count; i++) {
         int k = (i + 1) % count;
-        add_line(map, sx(x[i], z[i]), sy(y[i], z[i]), sx(x[k], z[k]), sy(y[k], z[k]));
+        add_world_line(map, x[i], y[i], z[i], x[k], y[k], z[k]);
     }
 }
 
@@ -209,7 +212,7 @@ PCMapRuntime* PCMapRuntimeLoad(const char* map_name) {
 
     cache_joint_tree(out, out->root_joint, 0.0f, 0.0f, 0.0f);
 
-    printf("loaded real map runtime %s root=%06x size=%u cachedLines=%d with joint translations\n",
+    printf("loaded real map runtime %s root=%06x size=%u cachedWorldLines=%d\n",
         map_name,
         out->root_joint,
         out->size,
@@ -236,10 +239,10 @@ void PCMapRuntimeDrawWire(PCMapRuntime* map) {
     for (i = 0; i < map->line_count; i++) {
         SDL_RenderDrawLine(
             PCRenderSDLGetRenderer(),
-            map->lines[i].x0,
-            map->lines[i].y0,
-            map->lines[i].x1,
-            map->lines[i].y1
+            project_x(map->lines[i].x0, map->lines[i].z0),
+            project_y(map->lines[i].y0, map->lines[i].z0),
+            project_x(map->lines[i].x1, map->lines[i].z1),
+            project_y(map->lines[i].y1, map->lines[i].z1)
         );
     }
 }
