@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include "platform/pc/render_pc.h"
 
 unsigned int PlatformGetTick(void);
 void PlatformInputInit(void);

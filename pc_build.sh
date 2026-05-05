@@ -18,8 +18,8 @@ cc -DPLATFORM_PC -c src/platform/pc/effdrv_pc.c -o build/pc/effdrv_pc.o
 cc -DPLATFORM_PC -c src/platform/pc/mapdrv_pc.c -o build/pc/mapdrv_pc.o
 cc -DPLATFORM_PC -c src/platform/pc/msgdrv_pc.c -o build/pc/msgdrv_pc.o
 cc -DPLATFORM_PC -c src/platform/pc/runtime_pc.c -o build/pc/runtime_pc.o
-cc -DPLATFORM_PC -c src/platform/pc/game_loop_pc.c -o build/pc/game_loop_pc.o
-cc -DPLATFORM_PC -c src/platform/pc/render_pc.c -o build/pc/render_pc.o
+cc -DPLATFORM_PC -Iinclude -c src/platform/pc/game_loop_pc.c -o build/pc/game_loop_pc.o
+cc -DPLATFORM_PC -Iinclude -c src/platform/pc/render_pc.c -o build/pc/render_pc.o
 cc -DPLATFORM_PC -c src/platform/pc/tpl_pc.c -o build/pc/tpl_pc.o
 cc -DPLATFORM_PC -c src/platform/pc/tpl_export_pc.c -o build/pc/tpl_export_pc.o
 
