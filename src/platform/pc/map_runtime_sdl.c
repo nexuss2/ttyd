@@ -21,6 +21,7 @@ typedef struct PCMapWorldLine {
 
 typedef struct PCMapTriangle {
     u32 material;
+    u32 texture_hash;
     float x0;
     float y0;
     float z0;
@@ -88,6 +89,54 @@ static int project_x(float x, float z) {
     return (int)(s_view_offset_x + ((x * 5.0f) + (z * 1.5f)) * s_view_scale);
 }
 
+static const char* map_str_at(PCMapRuntime* map, u32 off) {
+    if (!map || off == 0 || 0x20 + off >= map->size) {
+        return "";
+    }
+
+    return (const char*)(map->data + 0x20 + off);
+}
+
+static u32 hash_texture_name_string(const char* s) {
+    u32 h = 2166136261u;
+
+    while (s && *s) {
+        h ^= (unsigned char)*s;
+        h *= 16777619u;
+        s++;
+    }
+
+    return h;
+}
+
+static u32 material_texture_hash(PCMapRuntime* map, u32 material) {
+    u32 ref;
+    u32 texture_record;
+    u32 texture_name_off;
+    const char* texture_name;
+
+    if (!map || !material || 0x20 + material + 0x10 > map->size) {
+        return 0;
+    }
+
+    ref = be32(map->data + 0x20 + material + 0x0c);
+
+    if (!ref || 0x20 + ref + 4 > map->size) {
+        return 0;
+    }
+
+    texture_record = be32(map->data + 0x20 + ref);
+
+    if (!texture_record || 0x20 + texture_record + 4 > map->size) {
+        return 0;
+    }
+
+    texture_name_off = be32(map->data + 0x20 + texture_record);
+    texture_name = map_str_at(map, texture_name_off);
+
+    return hash_texture_name_string(texture_name);
+}
+
 static unsigned char mat_r(u32 material) {
     return (unsigned char)(80 + ((material >> 1) & 127));
 }
@@ -149,7 +198,7 @@ static void add_world_line(PCMapRuntime* map, float x0, float y0, float z0, floa
 }
 
 
-static void add_triangle(PCMapRuntime* map, u32 material, float x0, float y0, float z0, float x1, float y1, float z1, float x2, float y2, float z2) {
+static void add_triangle(PCMapRuntime* map, u32 material, u32 texture_hash, float x0, float y0, float z0, float x1, float y1, float z1, float x2, float y2, float z2) {
     PCMapTriangle* next;
 
     if (map->triangle_count >= map->triangle_capacity) {
@@ -165,6 +214,7 @@ static void add_triangle(PCMapRuntime* map, u32 material, float x0, float y0, fl
     }
 
     map->triangles[map->triangle_count].material = material;
+    map->triangles[map->triangle_count].texture_hash = texture_hash;
     map->triangles[map->triangle_count].x0 = x0;
     map->triangles[map->triangle_count].y0 = y0;
     map->triangles[map->triangle_count].z0 = z0;
@@ -213,8 +263,12 @@ static void cache_display_list(PCMapRuntime* map, u32 material, u32 mesh, u32 po
         add_world_line(map, x[i], y[i], z[i], x[k], y[k], z[k]);
     }
 
-    for (i = 1; i + 1 < count; i++) {
-        add_triangle(map, material, x[0], y[0], z[0], x[i], y[i], z[i], x[i + 1], y[i + 1], z[i + 1]);
+    {
+        u32 texture_hash = material_texture_hash(map, material);
+
+        for (i = 1; i + 1 < count; i++) {
+            add_triangle(map, material, texture_hash, x[0], y[0], z[0], x[i], y[i], z[i], x[i + 1], y[i + 1], z[i + 1]);
+        }
     }
 }
 
@@ -402,23 +456,23 @@ void PCMapRuntimeDrawFilled(PCMapRuntime* map) {
 
         verts[0].position.x = (float)project_x(map->triangles[i].x0, map->triangles[i].z0);
         verts[0].position.y = (float)project_y(map->triangles[i].y0, map->triangles[i].z0);
-        verts[0].color.r = mat_r(map->triangles[i].material);
-        verts[0].color.g = mat_g(map->triangles[i].material);
-        verts[0].color.b = mat_b(map->triangles[i].material);
+        verts[0].color.r = mat_r(map->triangles[i].texture_hash);
+        verts[0].color.g = mat_g(map->triangles[i].texture_hash);
+        verts[0].color.b = mat_b(map->triangles[i].texture_hash);
         verts[0].color.a = 255;
 
         verts[1].position.x = (float)project_x(map->triangles[i].x1, map->triangles[i].z1);
         verts[1].position.y = (float)project_y(map->triangles[i].y1, map->triangles[i].z1);
-        verts[1].color.r = mat_r(map->triangles[i].material);
-        verts[1].color.g = mat_g(map->triangles[i].material);
-        verts[1].color.b = mat_b(map->triangles[i].material);
+        verts[1].color.r = mat_r(map->triangles[i].texture_hash);
+        verts[1].color.g = mat_g(map->triangles[i].texture_hash);
+        verts[1].color.b = mat_b(map->triangles[i].texture_hash);
         verts[1].color.a = 255;
 
         verts[2].position.x = (float)project_x(map->triangles[i].x2, map->triangles[i].z2);
         verts[2].position.y = (float)project_y(map->triangles[i].y2, map->triangles[i].z2);
-        verts[2].color.r = mat_r(map->triangles[i].material);
-        verts[2].color.g = mat_g(map->triangles[i].material);
-        verts[2].color.b = mat_b(map->triangles[i].material);
+        verts[2].color.r = mat_r(map->triangles[i].texture_hash);
+        verts[2].color.g = mat_g(map->triangles[i].texture_hash);
+        verts[2].color.b = mat_b(map->triangles[i].texture_hash);
         verts[2].color.a = 255;
 
         SDL_RenderGeometry(PCRenderSDLGetRenderer(), 0, verts, 3, 0, 0);
