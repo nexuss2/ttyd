@@ -721,3 +721,80 @@ int TPLDecodeFirstCMPRToRGB(const void* data, u32 size, unsigned char** out_pixe
 
     return 0;
 }
+
+int TPLDecodeCMPRAtIndexToRGB(const void* data, u32 size, int index, unsigned char** out_pixels, int* out_width, int* out_height) {
+    const unsigned char* p = (const unsigned char*)data;
+    u32 version;
+    u32 count;
+    u32 descriptorOffset;
+    u32 desc;
+    u32 texHeaderOffset;
+    const unsigned char* th;
+    u32 format;
+    u32 dataOffset;
+    u16 height;
+    u16 width;
+    unsigned char* out;
+    const unsigned char* src;
+    u32 bx;
+    u32 by;
+
+    if (!data || size < 12 || index < 0 || !out_pixels || !out_width || !out_height) {
+        return 0;
+    }
+
+    *out_pixels = 0;
+    *out_width = 0;
+    *out_height = 0;
+
+    version = be32(p + 0);
+    count = be32(p + 4);
+    descriptorOffset = be32(p + 8);
+
+    if (version != 0x0020AF30 || (u32)index >= count) {
+        return 0;
+    }
+
+    desc = descriptorOffset + ((u32)index * 8);
+    if (desc + 8 > size) {
+        return 0;
+    }
+
+    texHeaderOffset = be32(p + desc);
+    if (!texHeaderOffset || texHeaderOffset + 0x24 > size) {
+        return 0;
+    }
+
+    th = p + texHeaderOffset;
+    height = be16(th + 0);
+    width = be16(th + 2);
+    format = be32(th + 4);
+    dataOffset = be32(th + 8);
+
+    if (format != 14 || dataOffset >= size) {
+        return 0;
+    }
+
+    out = (unsigned char*)calloc(width * height * 3, 1);
+    if (!out) {
+        return 0;
+    }
+
+    src = p + dataOffset;
+
+    for (by = 0; by < height; by += 8) {
+        for (bx = 0; bx < width; bx += 8) {
+            decode_cmpr_block(src + 0, out, width, height, bx + 0, by + 0);
+            decode_cmpr_block(src + 8, out, width, height, bx + 4, by + 0);
+            decode_cmpr_block(src + 16, out, width, height, bx + 0, by + 4);
+            decode_cmpr_block(src + 24, out, width, height, bx + 4, by + 4);
+            src += 32;
+        }
+    }
+
+    *out_pixels = out;
+    *out_width = width;
+    *out_height = height;
+
+    return 1;
+}

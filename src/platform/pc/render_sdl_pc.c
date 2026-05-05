@@ -4,6 +4,8 @@
 
 static SDL_Window* s_window;
 static SDL_Renderer* s_renderer;
+static int s_width;
+static int s_height;
 static int s_frame;
 
 int PCRenderSDLInit(int width, int height) {
@@ -35,6 +37,8 @@ int PCRenderSDLInit(int width, int height) {
         return 0;
     }
 
+    s_width = width;
+    s_height = height;
     s_frame = 0;
     printf("SDL render init %dx%d\n", width, height);
     return 1;
@@ -92,7 +96,7 @@ int PCRenderSDLSaveBMP(const char* path) {
         return 0;
     }
 
-    surface = SDL_CreateRGBSurfaceWithFormat(0, 640, 480, 32, SDL_PIXELFORMAT_ARGB8888);
+    surface = SDL_CreateRGBSurfaceWithFormat(0, s_width, s_height, 32, SDL_PIXELFORMAT_ARGB8888);
     if (!surface) {
         printf("SDL_CreateRGBSurfaceWithFormat failed: %s\n", SDL_GetError());
         return 0;
