@@ -22,6 +22,7 @@ typedef struct PCMapWorldLine {
 typedef struct PCMapTriangle {
     u32 material;
     u32 texture_hash;
+    const char* texture_name;
     float x0;
     float y0;
     float z0;
@@ -124,6 +125,32 @@ static u32 hash_texture_name_string(const char* s) {
     return h;
 }
 
+static const char* material_texture_name(PCMapRuntime* map, u32 material) {
+    u32 ref;
+    u32 texture_record;
+    u32 texture_name_off;
+
+    if (!map || !material || 0x20 + material + 0x10 > map->size) {
+        return "";
+    }
+
+    ref = be32(map->data + 0x20 + material + 0x0c);
+
+    if (!ref || 0x20 + ref + 4 > map->size) {
+        return "";
+    }
+
+    texture_record = be32(map->data + 0x20 + ref);
+
+    if (!texture_record || 0x20 + texture_record + 4 > map->size) {
+        return "";
+    }
+
+    texture_name_off = be32(map->data + 0x20 + texture_record);
+
+    return map_str_at(map, texture_name_off);
+}
+
 static u32 material_texture_hash(PCMapRuntime* map, u32 material) {
     u32 ref;
     u32 texture_record;
@@ -213,7 +240,7 @@ static void add_world_line(PCMapRuntime* map, float x0, float y0, float z0, floa
 }
 
 
-static void add_triangle(PCMapRuntime* map, u32 material, u32 texture_hash, float x0, float y0, float z0, float u0, float v0, float x1, float y1, float z1, float u1, float v1, float x2, float y2, float z2, float u2, float v2) {
+static void add_triangle(PCMapRuntime* map, u32 material, u32 texture_hash, const char* texture_name, float x0, float y0, float z0, float u0, float v0, float x1, float y1, float z1, float u1, float v1, float x2, float y2, float z2, float u2, float v2) {
     PCMapTriangle* next;
 
     if (map->triangle_count >= map->triangle_capacity) {
@@ -230,6 +257,7 @@ static void add_triangle(PCMapRuntime* map, u32 material, u32 texture_hash, floa
 
     map->triangles[map->triangle_count].material = material;
     map->triangles[map->triangle_count].texture_hash = texture_hash;
+    map->triangles[map->triangle_count].texture_name = texture_name;
     map->triangles[map->triangle_count].x0 = x0;
     map->triangles[map->triangle_count].y0 = y0;
     map->triangles[map->triangle_count].z0 = z0;
@@ -297,10 +325,11 @@ static void cache_display_list(PCMapRuntime* map, u32 material, u32 mesh, u32 po
     }
 
     {
-        u32 texture_hash = material_texture_hash(map, material);
+        const char* texture_name = material_texture_name(map, material);
+        u32 texture_hash = hash_texture_name_string(texture_name);
 
         for (i = 1; i + 1 < count; i++) {
-            add_triangle(map, material, texture_hash,
+            add_triangle(map, material, texture_hash, texture_name,
                 x[0], y[0], z[0], u[0], v[0],
                 x[i], y[i], z[i], u[i], v[i],
                 x[i + 1], y[i + 1], z[i + 1], u[i + 1], v[i + 1]);
@@ -405,9 +434,10 @@ PCMapRuntime* PCMapRuntimeLoad(const char* map_name) {
 
         for (ti = 0; ti < out->triangle_count && printed_uv_debug < 5; ti++) {
             if (out->triangles[ti].texture_hash != 0) {
-                printf("tri[%d] material=%06x texHash=%08x uv0=(%.3f,%.3f) uv1=(%.3f,%.3f) uv2=(%.3f,%.3f)\n",
+                printf("tri[%d] material=%06x tex=%s texHash=%08x uv0=(%.3f,%.3f) uv1=(%.3f,%.3f) uv2=(%.3f,%.3f)\n",
                     ti,
                     out->triangles[ti].material,
+                    out->triangles[ti].texture_name,
                     out->triangles[ti].texture_hash,
                     out->triangles[ti].u0,
                     out->triangles[ti].v0,
