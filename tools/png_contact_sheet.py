@@ -1,19 +1,7 @@
 import glob
 import struct
 import zlib
-
-def read_png_size(path):
-    with open(path, "rb") as f:
-        sig = f.read(8)
-        if sig != b"\x89PNG\r\n\x1a\n":
-            raise ValueError(f"{path}: not png")
-        length = struct.unpack(">I", f.read(4))[0]
-        tag = f.read(4)
-        if tag != b"IHDR":
-            raise ValueError(f"{path}: missing IHDR")
-        data = f.read(length)
-        w, h = struct.unpack(">II", data[:8])
-        return w, h
+import sys
 
 def read_ppm(path):
     with open(path, "rb") as f:
@@ -39,27 +27,30 @@ def write_png(path, w, h, rgb):
     with open(path, "wb") as f:
         f.write(data)
 
-files = sorted(glob.glob("build/pc/aaa_00_cmpr_*.ppm"))
+prefix = sys.argv[1] if len(sys.argv) > 1 else "aaa_00"
+files = sorted(glob.glob(f"build/pc/{prefix}_*.ppm"))
+
 cell = 160
 cols = 6
 rows = (len(files) + cols - 1) // cols
 sheet_w = cols * cell
-sheet_h = rows * cell
+sheet_h = max(1, rows) * cell
 sheet = bytearray([32] * (sheet_w * sheet_h * 3))
 
 for idx, path in enumerate(files):
     w, h, rgb = read_ppm(path)
     col = idx % cols
     row = idx // cols
-    ox = col * cell + (cell - w) // 2
-    oy = row * cell + (cell - h) // 2
+    ox = col * cell + max(0, (cell - w) // 2)
+    oy = row * cell + max(0, (cell - h) // 2)
 
-    for y in range(h):
-        for x in range(w):
-            if 0 <= ox + x < sheet_w and 0 <= oy + y < sheet_h:
-                src = (y * w + x) * 3
-                dst = ((oy + y) * sheet_w + (ox + x)) * 3
+    for y in range(min(h, cell)):
+        for x in range(min(w, cell)):
+            src = (y * w + x) * 3
+            dst = ((oy + y) * sheet_w + (ox + x)) * 3
+            if 0 <= dst < len(sheet) - 2:
                 sheet[dst:dst+3] = rgb[src:src+3]
 
-write_png("build/pc/aaa_00_cmpr_sheet.png", sheet_w, sheet_h, bytes(sheet))
-print("wrote build/pc/aaa_00_cmpr_sheet.png", sheet_w, sheet_h, "textures", len(files))
+out = f"build/pc/{prefix}_sheet.png"
+write_png(out, sheet_w, sheet_h, bytes(sheet))
+print("wrote", out, "textures", len(files))
