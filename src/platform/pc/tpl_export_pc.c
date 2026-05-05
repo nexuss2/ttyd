@@ -357,3 +357,99 @@ int TPLExportAllCMPR(const char* out_dir, const char* prefix, const void* data, 
     printf("exported %d CMPR textures from %s\n", exported, prefix);
     return exported;
 }
+
+static void write_ppm_rgb565_tiled(const char* out_path, const unsigned char* src, u32 width, u32 height) {
+    unsigned char* out;
+    const unsigned char* cursor;
+    u32 tile_x;
+    u32 tile_y;
+    u32 x;
+    u32 y;
+
+    out = (unsigned char*)calloc(width * height * 3, 1);
+    if (!out) {
+        return;
+    }
+
+    cursor = src;
+
+    for (tile_y = 0; tile_y < height; tile_y += 4) {
+        for (tile_x = 0; tile_x < width; tile_x += 4) {
+            for (y = 0; y < 4; y++) {
+                for (x = 0; x < 4; x++) {
+                    unsigned short c = ((unsigned short)cursor[0] << 8) | cursor[1];
+                    unsigned char rgb[3];
+                    u32 px = tile_x + x;
+                    u32 py = tile_y + y;
+
+                    cursor += 2;
+                    rgb565_to_rgb(c, rgb);
+
+                    if (px < width && py < height) {
+                        unsigned char* dst = out + ((py * width + px) * 3);
+                        dst[0] = rgb[0];
+                        dst[1] = rgb[1];
+                        dst[2] = rgb[2];
+                    }
+                }
+            }
+        }
+    }
+
+    write_ppm_rgb(out_path, out, width, height);
+    free(out);
+}
+
+int TPLExportFirstRGB565(const char* out_path, const void* data, u32 size) {
+    const unsigned char* p = (const unsigned char*)data;
+    u32 version;
+    u32 count;
+    u32 descriptorOffset;
+    u32 i;
+
+    if (!data || size < 12) {
+        return 0;
+    }
+
+    version = be32(p + 0);
+    count = be32(p + 4);
+    descriptorOffset = be32(p + 8);
+
+    if (version != 0x0020AF30) {
+        return 0;
+    }
+
+    for (i = 0; i < count; i++) {
+        u32 desc = descriptorOffset + i * 8;
+        u32 texHeaderOffset;
+        const unsigned char* th;
+        u32 format;
+        u32 dataOffset;
+        u16 height;
+        u16 width;
+
+        if (desc + 8 > size) {
+            return 0;
+        }
+
+        texHeaderOffset = be32(p + desc);
+        if (!texHeaderOffset || texHeaderOffset + 0x24 > size) {
+            continue;
+        }
+
+        th = p + texHeaderOffset;
+        height = be16(th + 0);
+        width = be16(th + 2);
+        format = be32(th + 4);
+        dataOffset = be32(th + 8);
+
+        if (format == 5 && dataOffset < size) {
+            printf("exporting descriptor %u RGB565 width=%u height=%u dataOffset=%u\n", i, width, height, dataOffset);
+            write_ppm_rgb565_tiled(out_path, p + dataOffset, width, height);
+            return 1;
+        }
+    }
+
+    printf("no RGB565 texture found\n");
+    return 0;
+}
