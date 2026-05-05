@@ -19,6 +19,18 @@ typedef struct PCMapWorldLine {
     float z1;
 } PCMapWorldLine;
 
+typedef struct PCMapTriangle {
+    float x0;
+    float y0;
+    float z0;
+    float x1;
+    float y1;
+    float z1;
+    float x2;
+    float y2;
+    float z2;
+} PCMapTriangle;
+
 struct PCMapRuntime {
     const unsigned char* data;
     u32 size;
@@ -26,6 +38,9 @@ struct PCMapRuntime {
     PCMapWorldLine* lines;
     int line_count;
     int line_capacity;
+    PCMapTriangle* triangles;
+    int triangle_count;
+    int triangle_capacity;
     float min_x;
     float min_y;
     float min_z;
@@ -120,6 +135,34 @@ static void add_world_line(PCMapRuntime* map, float x0, float y0, float z0, floa
     map->line_count++;
 }
 
+
+static void add_triangle(PCMapRuntime* map, float x0, float y0, float z0, float x1, float y1, float z1, float x2, float y2, float z2) {
+    PCMapTriangle* next;
+
+    if (map->triangle_count >= map->triangle_capacity) {
+        int new_capacity = map->triangle_capacity ? map->triangle_capacity * 2 : 4096;
+        next = (PCMapTriangle*)realloc(map->triangles, sizeof(PCMapTriangle) * new_capacity);
+
+        if (!next) {
+            return;
+        }
+
+        map->triangles = next;
+        map->triangle_capacity = new_capacity;
+    }
+
+    map->triangles[map->triangle_count].x0 = x0;
+    map->triangles[map->triangle_count].y0 = y0;
+    map->triangles[map->triangle_count].z0 = z0;
+    map->triangles[map->triangle_count].x1 = x1;
+    map->triangles[map->triangle_count].y1 = y1;
+    map->triangles[map->triangle_count].z1 = z1;
+    map->triangles[map->triangle_count].x2 = x2;
+    map->triangles[map->triangle_count].y2 = y2;
+    map->triangles[map->triangle_count].z2 = z2;
+    map->triangle_count++;
+}
+
 static void cache_display_list(PCMapRuntime* map, u32 mesh, u32 pos_base, int dl_index, float tx, float ty, float tz) {
     u32 dl = be32(map->data + 0x20 + mesh + 0x10 + dl_index * 8);
     u32 dl_len = be32(map->data + 0x20 + mesh + 0x14 + dl_index * 8);
@@ -154,6 +197,10 @@ static void cache_display_list(PCMapRuntime* map, u32 mesh, u32 pos_base, int dl
     for (i = 0; i < count; i++) {
         int k = (i + 1) % count;
         add_world_line(map, x[i], y[i], z[i], x[k], y[k], z[k]);
+    }
+
+    for (i = 1; i + 1 < count; i++) {
+        add_triangle(map, x[0], y[0], z[0], x[i], y[i], z[i], x[i + 1], y[i + 1], z[i + 1]);
     }
 }
 
@@ -238,11 +285,12 @@ PCMapRuntime* PCMapRuntimeLoad(const char* map_name) {
 
     cache_joint_tree(out, out->root_joint, 0.0f, 0.0f, 0.0f);
 
-    printf("loaded real map runtime %s root=%06x size=%u cachedWorldLines=%d\n",
+    printf("loaded real map runtime %s root=%06x size=%u cachedWorldLines=%d cachedTriangles=%d\n",
         map_name,
         out->root_joint,
         out->size,
-        out->line_count);
+        out->line_count,
+        out->triangle_count);
 
     printf("real map bounds x=[%.2f, %.2f] y=[%.2f, %.2f] z=[%.2f, %.2f]\n",
         out->min_x, out->max_x,
@@ -325,11 +373,49 @@ void PCMapRuntimeDrawWire(PCMapRuntime* map) {
     }
 }
 
+void PCMapRuntimeDrawFilled(PCMapRuntime* map) {
+    int i;
+
+    if (!map) {
+        return;
+    }
+
+    SDL_SetRenderDrawColor(PCRenderSDLGetRenderer(), 90, 90, 90, 255);
+
+    for (i = 0; i < map->triangle_count; i++) {
+        SDL_Vertex verts[3];
+
+        verts[0].position.x = (float)project_x(map->triangles[i].x0, map->triangles[i].z0);
+        verts[0].position.y = (float)project_y(map->triangles[i].y0, map->triangles[i].z0);
+        verts[0].color.r = 90;
+        verts[0].color.g = 90;
+        verts[0].color.b = 90;
+        verts[0].color.a = 255;
+
+        verts[1].position.x = (float)project_x(map->triangles[i].x1, map->triangles[i].z1);
+        verts[1].position.y = (float)project_y(map->triangles[i].y1, map->triangles[i].z1);
+        verts[1].color.r = 90;
+        verts[1].color.g = 90;
+        verts[1].color.b = 90;
+        verts[1].color.a = 255;
+
+        verts[2].position.x = (float)project_x(map->triangles[i].x2, map->triangles[i].z2);
+        verts[2].position.y = (float)project_y(map->triangles[i].y2, map->triangles[i].z2);
+        verts[2].color.r = 90;
+        verts[2].color.g = 90;
+        verts[2].color.b = 90;
+        verts[2].color.a = 255;
+
+        SDL_RenderGeometry(PCRenderSDLGetRenderer(), 0, verts, 3, 0, 0);
+    }
+}
+
 void PCMapRuntimeDestroy(PCMapRuntime* map) {
     if (!map) {
         return;
     }
 
     free(map->lines);
+    free(map->triangles);
     free(map);
 }

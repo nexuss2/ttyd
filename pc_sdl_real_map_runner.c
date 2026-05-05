@@ -6,7 +6,7 @@
 
 void mapSetPCDebug(int enabled);
 
-static int run_once(const char* map_name, int use_auto, float offset_x, float offset_y, float scale) {
+static int run_once(const char* map_name, int use_auto, int draw_filled, float offset_x, float offset_y, float scale) {
     PCMapRuntime* map;
 
     if (!PCRenderSDLInit(960, 720)) {
@@ -27,6 +27,9 @@ static int run_once(const char* map_name, int use_auto, float offset_x, float of
 
     PCRenderSDLBeginFrame();
     PCRenderSDLClear();
+    if (draw_filled) {
+        PCMapRuntimeDrawFilled(map);
+    }
     PCMapRuntimeDrawWire(map);
     PCRenderSDLEndFrame();
 
@@ -133,6 +136,7 @@ int main(int argc, char** argv) {
     float offset_y = 620.0f;
     float scale = 1.0f;
     int use_auto = 0;
+    int draw_filled = 0;
     int debug_map = 0;
     int i;
 
@@ -143,6 +147,10 @@ int main(int argc, char** argv) {
     for (i = 2; i < argc; i++) {
         if (strcmp(argv[i], "--debug-map") == 0) {
             debug_map = 1;
+        }
+
+        if (strcmp(argv[i], "--filled") == 0) {
+            draw_filled = 1;
         }
     }
 
@@ -168,5 +176,9 @@ int main(int argc, char** argv) {
         }
     }
 
-    return run_once(map_name, use_auto, offset_x, offset_y, scale);
+    if (draw_filled) {
+        printf("filled flag set, using filled real geometry path\n");
+    }
+
+    return run_once(map_name, use_auto, draw_filled, offset_x, offset_y, scale);
 }
