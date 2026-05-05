@@ -1,4 +1,4 @@
-#include "platform/pc/runtime_pc.h"
+#include "platform/pc/platform_pc.h"
 
 int main(void) {
     return PCRuntimeHealthCheck();
