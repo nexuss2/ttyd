@@ -20,6 +20,7 @@ typedef struct PCMapWorldLine {
 } PCMapWorldLine;
 
 typedef struct PCMapTriangle {
+    u32 material;
     float x0;
     float y0;
     float z0;
@@ -87,6 +88,18 @@ static int project_x(float x, float z) {
     return (int)(s_view_offset_x + ((x * 5.0f) + (z * 1.5f)) * s_view_scale);
 }
 
+static unsigned char mat_r(u32 material) {
+    return (unsigned char)(80 + ((material >> 1) & 127));
+}
+
+static unsigned char mat_g(u32 material) {
+    return (unsigned char)(80 + ((material >> 4) & 127));
+}
+
+static unsigned char mat_b(u32 material) {
+    return (unsigned char)(80 + ((material >> 7) & 127));
+}
+
 static int project_y(float y, float z) {
     return (int)(s_view_offset_y + ((-y * 3.0f) + (z * 1.0f)) * s_view_scale);
 }
@@ -136,7 +149,7 @@ static void add_world_line(PCMapRuntime* map, float x0, float y0, float z0, floa
 }
 
 
-static void add_triangle(PCMapRuntime* map, float x0, float y0, float z0, float x1, float y1, float z1, float x2, float y2, float z2) {
+static void add_triangle(PCMapRuntime* map, u32 material, float x0, float y0, float z0, float x1, float y1, float z1, float x2, float y2, float z2) {
     PCMapTriangle* next;
 
     if (map->triangle_count >= map->triangle_capacity) {
@@ -151,6 +164,7 @@ static void add_triangle(PCMapRuntime* map, float x0, float y0, float z0, float 
         map->triangle_capacity = new_capacity;
     }
 
+    map->triangles[map->triangle_count].material = material;
     map->triangles[map->triangle_count].x0 = x0;
     map->triangles[map->triangle_count].y0 = y0;
     map->triangles[map->triangle_count].z0 = z0;
@@ -163,7 +177,7 @@ static void add_triangle(PCMapRuntime* map, float x0, float y0, float z0, float 
     map->triangle_count++;
 }
 
-static void cache_display_list(PCMapRuntime* map, u32 mesh, u32 pos_base, int dl_index, float tx, float ty, float tz) {
+static void cache_display_list(PCMapRuntime* map, u32 material, u32 mesh, u32 pos_base, int dl_index, float tx, float ty, float tz) {
     u32 dl = be32(map->data + 0x20 + mesh + 0x10 + dl_index * 8);
     u32 dl_len = be32(map->data + 0x20 + mesh + 0x14 + dl_index * 8);
     const unsigned char* p;
@@ -200,11 +214,11 @@ static void cache_display_list(PCMapRuntime* map, u32 mesh, u32 pos_base, int dl
     }
 
     for (i = 1; i + 1 < count; i++) {
-        add_triangle(map, x[0], y[0], z[0], x[i], y[i], z[i], x[i + 1], y[i + 1], z[i + 1]);
+        add_triangle(map, material, x[0], y[0], z[0], x[i], y[i], z[i], x[i + 1], y[i + 1], z[i + 1]);
     }
 }
 
-static void cache_mesh(PCMapRuntime* map, u32 mesh, float tx, float ty, float tz) {
+static void cache_mesh(PCMapRuntime* map, u32 material, u32 mesh, float tx, float ty, float tz) {
     u32 vcd;
     u32 pos_base;
     u32 display_list_count;
@@ -227,7 +241,7 @@ static void cache_mesh(PCMapRuntime* map, u32 mesh, float tx, float ty, float tz
     }
 
     for (i = 0; i < display_list_count; i++) {
-        cache_display_list(map, mesh, pos_base, i, tx, ty, tz);
+        cache_display_list(map, material, mesh, pos_base, i, tx, ty, tz);
     }
 }
 
@@ -258,8 +272,9 @@ static void cache_joint_tree(PCMapRuntime* map, u32 joint, float parent_tx, floa
     if (part_count > 0 && part_count < 64) {
         for (i = 0; i < part_count; i++) {
             u32 part = 0x60 + i * 8;
+            u32 material = be32(j + part + 0);
             u32 mesh = be32(j + part + 4);
-            cache_mesh(map, mesh, tx, ty, tz);
+            cache_mesh(map, material, mesh, tx, ty, tz);
         }
     }
 
@@ -387,23 +402,23 @@ void PCMapRuntimeDrawFilled(PCMapRuntime* map) {
 
         verts[0].position.x = (float)project_x(map->triangles[i].x0, map->triangles[i].z0);
         verts[0].position.y = (float)project_y(map->triangles[i].y0, map->triangles[i].z0);
-        verts[0].color.r = 90;
-        verts[0].color.g = 90;
-        verts[0].color.b = 90;
+        verts[0].color.r = mat_r(map->triangles[i].material);
+        verts[0].color.g = mat_g(map->triangles[i].material);
+        verts[0].color.b = mat_b(map->triangles[i].material);
         verts[0].color.a = 255;
 
         verts[1].position.x = (float)project_x(map->triangles[i].x1, map->triangles[i].z1);
         verts[1].position.y = (float)project_y(map->triangles[i].y1, map->triangles[i].z1);
-        verts[1].color.r = 90;
-        verts[1].color.g = 90;
-        verts[1].color.b = 90;
+        verts[1].color.r = mat_r(map->triangles[i].material);
+        verts[1].color.g = mat_g(map->triangles[i].material);
+        verts[1].color.b = mat_b(map->triangles[i].material);
         verts[1].color.a = 255;
 
         verts[2].position.x = (float)project_x(map->triangles[i].x2, map->triangles[i].z2);
         verts[2].position.y = (float)project_y(map->triangles[i].y2, map->triangles[i].z2);
-        verts[2].color.r = 90;
-        verts[2].color.g = 90;
-        verts[2].color.b = 90;
+        verts[2].color.r = mat_r(map->triangles[i].material);
+        verts[2].color.g = mat_g(map->triangles[i].material);
+        verts[2].color.b = mat_b(map->triangles[i].material);
         verts[2].color.a = 255;
 
         SDL_RenderGeometry(PCRenderSDLGetRenderer(), 0, verts, 3, 0, 0);
