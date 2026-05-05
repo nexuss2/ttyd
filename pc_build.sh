@@ -15,6 +15,7 @@ cc -DPLATFORM_PC -c src/platform/pc/windowdrv_pc.c -o build/pc/windowdrv_pc.o
 cc -DPLATFORM_PC -c src/platform/pc/effdrv_pc.c -o build/pc/effdrv_pc.o
 cc -DPLATFORM_PC -c src/platform/pc/mapdrv_pc.c -o build/pc/mapdrv_pc.o
 cc -DPLATFORM_PC -c src/platform/pc/msgdrv_pc.c -o build/pc/msgdrv_pc.o
+cc -DPLATFORM_PC -c src/platform/pc/runtime_pc.c -o build/pc/runtime_pc.o
 cc -DPLATFORM_PC -c src/platform/pc/tpl_pc.c -o build/pc/tpl_pc.o
 cc -DPLATFORM_PC -c src/platform/pc/tpl_export_pc.c -o build/pc/tpl_export_pc.o
 
@@ -32,6 +33,7 @@ cc -DPLATFORM_PC \
   build/pc/effdrv_pc.o \
   build/pc/mapdrv_pc.o \
   build/pc/msgdrv_pc.o \
+  build/pc/runtime_pc.o \
   -o build/pc/ttyd_pc
 
 cc -DPLATFORM_PC pc_asset_test.c build/pc/file.o -o build/pc/asset_test
