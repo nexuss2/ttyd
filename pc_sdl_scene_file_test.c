@@ -4,8 +4,8 @@
 #include "platform/pc/map_texture_runtime_sdl.h"
 
 int main(int argc, char** argv) {
-    const char* map = "aaa_00";
     const char* scene_path = "pc_scenes/aaa_house.scene";
+    char map[128] = "aaa_00";
     PCMapTextureSet* set;
     FILE* f;
     char name[128];
@@ -17,6 +17,21 @@ int main(int argc, char** argv) {
     if (argc > 1) {
         scene_path = argv[1];
     }
+
+    f = fopen(scene_path, "r");
+    if (!f) {
+        printf("failed to open scene file: %s\n", scene_path);
+        return 1;
+    }
+
+    while (fscanf(f, "%127s", name) == 1) {
+        if (strcmp(name, "map") == 0) {
+            fscanf(f, "%127s", map);
+            break;
+        }
+    }
+
+    fclose(f);
 
     if (!PCRenderSDLInit(800, 600)) {
         return 1;
@@ -30,7 +45,6 @@ int main(int argc, char** argv) {
 
     f = fopen(scene_path, "r");
     if (!f) {
-        printf("failed to open scene file: %s\n", scene_path);
         PCMapTextureSetDestroy(set);
         PCRenderSDLShutdown();
         return 1;
@@ -39,12 +53,21 @@ int main(int argc, char** argv) {
     PCRenderSDLBeginFrame();
     PCRenderSDLClear();
 
-    while (fscanf(f, "%127s %d %d %d %d", name, &x, &y, &w, &h) == 5) {
-        if (name[0] == '#') {
+    while (fscanf(f, "%127s", name) == 1) {
+        if (strcmp(name, "map") == 0) {
+            fscanf(f, "%127s", map);
             continue;
         }
 
-        PCMapTextureSetDrawNamed(set, name, x, y, w, h);
+        if (name[0] == '#') {
+            char buffer[512];
+            fgets(buffer, sizeof(buffer), f);
+            continue;
+        }
+
+        if (fscanf(f, "%d %d %d %d", &x, &y, &w, &h) == 4) {
+            PCMapTextureSetDrawNamed(set, name, x, y, w, h);
+        }
     }
 
     fclose(f);
