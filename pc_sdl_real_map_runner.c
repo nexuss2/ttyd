@@ -4,6 +4,8 @@
 #include "platform/pc/render_sdl_pc.h"
 #include "platform/pc/map_runtime_sdl.h"
 
+void mapSetPCDebug(int enabled);
+
 static int run_once(const char* map_name, int use_auto, float offset_x, float offset_y, float scale) {
     PCMapRuntime* map;
 
@@ -131,10 +133,20 @@ int main(int argc, char** argv) {
     float offset_y = 620.0f;
     float scale = 1.0f;
     int use_auto = 0;
+    int debug_map = 0;
+    int i;
 
     if (argc > 1) {
         map_name = argv[1];
     }
+
+    for (i = 2; i < argc; i++) {
+        if (strcmp(argv[i], "--debug-map") == 0) {
+            debug_map = 1;
+        }
+    }
+
+    mapSetPCDebug(debug_map);
 
     if (argc > 2 && strcmp(argv[2], "--live") == 0) {
         return run_live(map_name);
@@ -143,15 +155,15 @@ int main(int argc, char** argv) {
     if (argc > 2 && strcmp(argv[2], "auto") == 0) {
         use_auto = 1;
     } else {
-        if (argc > 2) {
+        if (argc > 2 && argv[2][0] != '-') {
             offset_x = (float)atof(argv[2]);
         }
 
-        if (argc > 3) {
+        if (argc > 3 && argv[3][0] != '-') {
             offset_y = (float)atof(argv[3]);
         }
 
-        if (argc > 4) {
+        if (argc > 4 && argv[4][0] != '-') {
             scale = (float)atof(argv[4]);
         }
     }
