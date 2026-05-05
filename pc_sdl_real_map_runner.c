@@ -3,17 +3,20 @@
 #include <string.h>
 #include "platform/pc/render_sdl_pc.h"
 #include "platform/pc/map_runtime_sdl.h"
+#include "platform/pc/map_texture_runtime_sdl.h"
 
 void mapSetPCDebug(int enabled);
 
 static int run_once(const char* map_name, int use_auto, int draw_filled, float offset_x, float offset_y, float scale) {
     PCMapRuntime* map;
+    PCMapTextureSet* textures;
 
     if (!PCRenderSDLInit(960, 720)) {
         return 1;
     }
 
     map = PCMapRuntimeLoad(map_name);
+    textures = PCMapTextureSetLoad(map_name);
     if (!map) {
         PCRenderSDLShutdown();
         return 1;
@@ -28,7 +31,7 @@ static int run_once(const char* map_name, int use_auto, int draw_filled, float o
     PCRenderSDLBeginFrame();
     PCRenderSDLClear();
     if (draw_filled) {
-        PCMapRuntimeDrawFilled(map);
+        PCMapRuntimeDrawFilled(map, textures);
     }
     PCMapRuntimeDrawWire(map);
     PCRenderSDLEndFrame();
@@ -36,6 +39,7 @@ static int run_once(const char* map_name, int use_auto, int draw_filled, float o
     PCRenderSDLSaveBMP("build/pc/sdl_real_map_runner.bmp");
 
     PCMapRuntimeDestroy(map);
+    PCMapTextureSetDestroy(textures);
     PCRenderSDLShutdown();
 
     printf("saved real map %s mode=%s offset=(%.2f, %.2f) scale=%.2f\n",
@@ -55,12 +59,14 @@ static int run_live(const char* map_name) {
     int frame = 0;
     int running = 1;
     PCMapRuntime* map;
+    PCMapTextureSet* textures;
 
     if (!PCRenderSDLInit(960, 720)) {
         return 1;
     }
 
     map = PCMapRuntimeLoad(map_name);
+    textures = PCMapTextureSetLoad(map_name);
     if (!map) {
         PCRenderSDLShutdown();
         return 1;
@@ -125,6 +131,7 @@ static int run_live(const char* map_name) {
     }
 
     PCMapRuntimeDestroy(map);
+    PCMapTextureSetDestroy(textures);
     PCRenderSDLShutdown();
 
     return 0;

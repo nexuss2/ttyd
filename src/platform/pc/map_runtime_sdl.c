@@ -3,6 +3,7 @@
 #include <SDL.h>
 #include "platform/pc/render_sdl_pc.h"
 #include "platform/pc/map_runtime_sdl.h"
+#include "platform/pc/map_texture_runtime_sdl.h"
 
 typedef unsigned int u32;
 
@@ -531,7 +532,7 @@ void PCMapRuntimeDrawWire(PCMapRuntime* map) {
     }
 }
 
-void PCMapRuntimeDrawFilled(PCMapRuntime* map) {
+void PCMapRuntimeDrawFilled(PCMapRuntime* map, PCMapTextureSet* textures) {
     int i;
 
     if (!map) {
@@ -542,29 +543,32 @@ void PCMapRuntimeDrawFilled(PCMapRuntime* map) {
 
     for (i = 0; i < map->triangle_count; i++) {
         SDL_Vertex verts[3];
+        SDL_Texture* texture = 0;
 
         verts[0].position.x = (float)project_x(map->triangles[i].x0, map->triangles[i].z0);
         verts[0].position.y = (float)project_y(map->triangles[i].y0, map->triangles[i].z0);
-        verts[0].color.r = mat_r(map->triangles[i].texture_hash);
-        verts[0].color.g = mat_g(map->triangles[i].texture_hash);
-        verts[0].color.b = mat_b(map->triangles[i].texture_hash);
+        texture = PCMapTextureSetFindTexture(textures, map->triangles[i].texture_name);
+
+        verts[0].color.r = texture ? 255 : mat_r(map->triangles[i].texture_hash);
+        verts[0].color.g = texture ? 255 : mat_g(map->triangles[i].texture_hash);
+        verts[0].color.b = texture ? 255 : mat_b(map->triangles[i].texture_hash);
         verts[0].color.a = 255;
 
         verts[1].position.x = (float)project_x(map->triangles[i].x1, map->triangles[i].z1);
         verts[1].position.y = (float)project_y(map->triangles[i].y1, map->triangles[i].z1);
-        verts[1].color.r = mat_r(map->triangles[i].texture_hash);
-        verts[1].color.g = mat_g(map->triangles[i].texture_hash);
-        verts[1].color.b = mat_b(map->triangles[i].texture_hash);
+        verts[1].color.r = texture ? 255 : mat_r(map->triangles[i].texture_hash);
+        verts[1].color.g = texture ? 255 : mat_g(map->triangles[i].texture_hash);
+        verts[1].color.b = texture ? 255 : mat_b(map->triangles[i].texture_hash);
         verts[1].color.a = 255;
 
         verts[2].position.x = (float)project_x(map->triangles[i].x2, map->triangles[i].z2);
         verts[2].position.y = (float)project_y(map->triangles[i].y2, map->triangles[i].z2);
-        verts[2].color.r = mat_r(map->triangles[i].texture_hash);
-        verts[2].color.g = mat_g(map->triangles[i].texture_hash);
-        verts[2].color.b = mat_b(map->triangles[i].texture_hash);
+        verts[2].color.r = texture ? 255 : mat_r(map->triangles[i].texture_hash);
+        verts[2].color.g = texture ? 255 : mat_g(map->triangles[i].texture_hash);
+        verts[2].color.b = texture ? 255 : mat_b(map->triangles[i].texture_hash);
         verts[2].color.a = 255;
 
-        SDL_RenderGeometry(PCRenderSDLGetRenderer(), 0, verts, 3, 0, 0);
+        SDL_RenderGeometry(PCRenderSDLGetRenderer(), texture, verts, 3, 0, 0);
     }
 }
 
