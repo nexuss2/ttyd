@@ -312,10 +312,18 @@ static void dump_bytes(const char* label, const void* data, u32 size) {
 }
 
 
+static int s_map_debug = 0;
+
+void mapSetPCDebug(int enabled) {
+    s_map_debug = enabled;
+}
+
 static void* s_map_d;
 static void* s_map_t;
 static void* s_map_s;
 static void* s_map_c;
+
+
 
 static u32 s_map_d_size;
 static u32 s_map_t_size;
@@ -352,12 +360,14 @@ int mapLoadPC(const char* map) {
     s_map_s = load_map_file(map, "s", &s_map_s_size);
     s_map_c = load_map_file(map, "c", &s_map_c_size);
 
-    printf("mapLoadPC %s d=%u t=%u s=%u c=%u\n",
+    if (s_map_debug) {
+        printf("mapLoadPC %s d=%u t=%u s=%u c=%u\n",
            map,
            s_map_d_size,
            s_map_t_size,
            s_map_s_size,
            s_map_c_size);
+    }
 
     if (s_map_d) {
      //   /* dump_bytes("map d", s_map_d, s_map_d_size); */
@@ -366,9 +376,11 @@ int mapLoadPC(const char* map) {
     //   /* dump_named_chunks(s_map_d, s_map_d_size); */
       //  /* dump_information_chunk(s_map_d, s_map_d_size); */
      //  /* dump_information_offsets(s_map_d, s_map_d_size); */
-      print_map_information_summary(s_map_d, s_map_d_size);
-        dump_material_name_table(s_map_d, s_map_d_size);
-        dump_texture_table(s_map_d, s_map_d_size);
+        if (s_map_debug) {
+            print_map_information_summary(s_map_d, s_map_d_size);
+            dump_material_name_table(s_map_d, s_map_d_size);
+            dump_texture_table(s_map_d, s_map_d_size);
+        }
     }
 
     return s_map_d != 0 && s_map_t != 0 && s_map_s != 0 && s_map_c != 0;
@@ -414,4 +426,12 @@ int mapWriteTextureNamesPC(const char* map, const char* out_path) {
     fclose(f);
     printf("wrote %s\n", out_path);
     return 1;
+}
+
+void* mapGetPCData(void) {
+    return s_map_d;
+}
+
+u32 mapGetPCDataSize(void) {
+    return s_map_d_size;
 }
