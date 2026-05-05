@@ -6,23 +6,23 @@ Run:
 
     ./pc_build.sh --quick
 
-Builds the PC runner and runs the runtime health check.
+Builds the PC runner and runs the runtime health check only.
 
-## Full smoke test
+## Normal smoke test
 
 Run:
 
     ./pc_build.sh
 
-Builds and runs all PC smoke tests:
-- asset loading
-- ARC remapping
-- map loading
-- message loading
-- sound file access
-- STM header inspection
-- TPL inspection
-- texture export tests
+Builds and runs the normal PC smoke tests without bulk texture exporters.
+
+## Export smoke test
+
+Run:
+
+    ./pc_build.sh --exports
+
+Runs the normal smoke tests plus texture export tests.
 
 ## Map texture export
 
