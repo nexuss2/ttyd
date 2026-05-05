@@ -6,6 +6,7 @@
 int main(int argc, char** argv) {
     const char* scene_path = "pc_scenes/aaa_house.scene";
     char map[128] = "aaa_00";
+    char screenshot[256] = "build/pc/sdl_scene_file_test.bmp";
     PCMapTextureSet* set;
     FILE* f;
     char name[128];
@@ -27,7 +28,17 @@ int main(int argc, char** argv) {
     while (fscanf(f, "%127s", name) == 1) {
         if (strcmp(name, "map") == 0) {
             fscanf(f, "%127s", map);
-            break;
+            continue;
+        }
+
+        if (strcmp(name, "screenshot") == 0) {
+            fscanf(f, "%255s", screenshot);
+            continue;
+        }
+
+        if (strcmp(name, "screenshot") == 0) {
+            fscanf(f, "%255s", screenshot);
+            continue;
         }
     }
 
@@ -73,7 +84,7 @@ int main(int argc, char** argv) {
     fclose(f);
 
     PCRenderSDLEndFrame();
-    PCRenderSDLSaveBMP("build/pc/sdl_scene_file_test.bmp");
+    PCRenderSDLSaveBMP(screenshot);
 
     PCMapTextureSetDestroy(set);
     PCRenderSDLShutdown();

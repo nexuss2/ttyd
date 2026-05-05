@@ -1,4 +1,5 @@
 map aaa_00
+screenshot build/pc/sdl_aaa_house_scene.bmp
 aaa_yane 80 60 256 128
 aaa_moku_dot 80 190 256 256
 aaa_door 170 300 96 160
