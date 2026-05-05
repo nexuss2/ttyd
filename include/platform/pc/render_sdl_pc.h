@@ -8,3 +8,4 @@ int PCRenderSDLPollQuit(void);
 void PCRenderSDLShutdown(void);
 int PCRenderSDLSaveBMP(const char* path);
 int PCRenderSDLDrawPPM(const char* path, int x, int y);
+int PCRenderSDLDrawRGB(const unsigned char* pixels, int width, int height, int x, int y);
