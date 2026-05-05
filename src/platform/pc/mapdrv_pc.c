@@ -373,3 +373,45 @@ int mapLoadPC(const char* map) {
 
     return s_map_d != 0 && s_map_t != 0 && s_map_s != 0 && s_map_c != 0;
 }
+
+int mapWriteTextureNamesPC(const char* map, const char* out_path) {
+    FILE* f;
+    const unsigned char* base;
+    const unsigned char* table;
+    u32 off;
+    u32 i;
+
+    if (!s_map_d) {
+        if (!mapLoadPC(map)) {
+            return 0;
+        }
+    }
+
+    if (!find_map_chunk(s_map_d, s_map_d_size, "texture_table", &off)) {
+        return 0;
+    }
+
+    base = (const unsigned char*)s_map_d + 0x20;
+    table = base + off;
+
+    f = fopen(out_path, "w");
+    if (!f) {
+        return 0;
+    }
+
+    for (i = 1; i < 64; i++) {
+        u32 target = read_be32(table + i * 4);
+
+        if (target == 0) {
+            break;
+        }
+
+        if (0x20 + target < s_map_d_size) {
+            fprintf(f, "%03u %s\n", i - 1, (const char*)(base + target));
+        }
+    }
+
+    fclose(f);
+    printf("wrote %s\n", out_path);
+    return 1;
+}
