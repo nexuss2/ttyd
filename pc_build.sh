@@ -19,7 +19,7 @@ cc -DPLATFORM_PC -c src/platform/pc/runtime_pc.c -o build/pc/runtime_pc.o
 cc -DPLATFORM_PC -c src/platform/pc/tpl_pc.c -o build/pc/tpl_pc.o
 cc -DPLATFORM_PC -c src/platform/pc/tpl_export_pc.c -o build/pc/tpl_export_pc.o
 
-cc -DPLATFORM_PC \
+cc -DPLATFORM_PC -Iinclude \
   pc_main.c \
   build/pc/file.o \
   build/pc/input.o \
