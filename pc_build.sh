@@ -74,10 +74,12 @@ fi
 ./build/pc/game_loop_test
 ./build/pc/stm_test
 ./build/pc/tpl_test
-./build/pc/tpl_export_test
-./build/pc/tpl_cmpr_test
-./build/pc/tpl_export_all_test
-./build/pc/tpl_rgb565_test
-./build/pc/tpl_i8_test
-./build/pc/tpl_ia4_test
-./build/pc/tpl_export_supported_test
+if [ "$MODE" = "--exports" ]; then
+  ./build/pc/tpl_export_test
+  ./build/pc/tpl_cmpr_test
+  ./build/pc/tpl_export_all_test
+  ./build/pc/tpl_rgb565_test
+  ./build/pc/tpl_i8_test
+  ./build/pc/tpl_ia4_test
+  ./build/pc/tpl_export_supported_test
+fi
