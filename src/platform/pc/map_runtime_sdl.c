@@ -6,6 +6,10 @@
 
 typedef unsigned int u32;
 
+static float s_view_offset_x = 450.0f;
+static float s_view_offset_y = 620.0f;
+static float s_view_scale = 1.0f;
+
 int mapLoadPC(const char* map);
 void* mapGetPCData(void);
 u32 mapGetPCDataSize(void);
@@ -57,11 +61,11 @@ static void get_pos(const unsigned char* data, u32 pos_base, int index, float tx
 }
 
 static int sx(float x, float z) {
-    return 450 + (int)(x * 5.0f) + (int)(z * 1.5f);
+    return (int)(s_view_offset_x + ((x * 5.0f) + (z * 1.5f)) * s_view_scale);
 }
 
 static int sy(float y, float z) {
-    return 620 - (int)(y * 3.0f) + (int)(z * 1.0f);
+    return (int)(s_view_offset_y + ((-y * 3.0f) + (z * 1.0f)) * s_view_scale);
 }
 
 static void add_line(PCMapRuntime* map, int x0, int y0, int x1, int y1) {
@@ -212,6 +216,12 @@ PCMapRuntime* PCMapRuntimeLoad(const char* map_name) {
         out->line_count);
 
     return out;
+}
+
+void PCMapRuntimeSetView(float offset_x, float offset_y, float scale) {
+    s_view_offset_x = offset_x;
+    s_view_offset_y = offset_y;
+    s_view_scale = scale;
 }
 
 void PCMapRuntimeDrawWire(PCMapRuntime* map) {
