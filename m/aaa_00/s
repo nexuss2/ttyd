@@ -1,0 +1,88 @@
+<Npc>
+   <name>
+       "パレッタ"
+   </>
+   <tribe>
+       "パレッタ"
+   </>
+   <position>
+        0 -1000  0 
+   </>
+   <dir>
+        270 
+   </>
+   <aitype>
+       "なし"
+   </>
+   <territory_type>
+       "NPC_TERRITORY_TYPE_NOTHING"
+   </>
+   <territory_base>
+        0  0  0 
+   </>
+   <territory_loiter>
+        0  0  0 
+   </>
+   <territory_homing>
+        0  0  0 
+   </>
+   <search_range>
+        0 
+   </>
+   <search_angle>
+        0 
+   </>
+   <homing_range>
+        0 
+   </>
+   <homing_angle>
+        0 
+   </>
+   <btl_setup_no>
+       "BTLNO_INVALID"
+   </>
+</>
+<Npc>
+   <name>
+       "ルイージ"
+   </>
+   <tribe>
+       "ルイージ"
+   </>
+   <position>
+        0 -1000  0 
+   </>
+   <dir>
+        270 
+   </>
+   <aitype>
+       "なし"
+   </>
+   <territory_type>
+       "NPC_TERRITORY_TYPE_NOTHING"
+   </>
+   <territory_base>
+        0  0  0 
+   </>
+   <territory_loiter>
+        0  0  0 
+   </>
+   <territory_homing>
+        0  0  0 
+   </>
+   <search_range>
+        0 
+   </>
+   <search_angle>
+        0 
+   </>
+   <homing_range>
+        0 
+   </>
+   <homing_angle>
+        0 
+   </>
+   <btl_setup_no>
+       "BTLNO_INVALID"
+   </>
+</>
